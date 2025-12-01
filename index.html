@@ -18,6 +18,7 @@
     .hint { font-size: 0.95rem; margin-top: 0.6rem; color: #333; }
     .stack { display: grid; gap: 0.75rem; margin-top: 1.2rem; }
     .badge { display: inline-block; padding: 0.2rem 0.45rem; border-radius: 6px; background: #eef2ff; color: #223; font-size: 0.85rem; margin-left: 0.35rem; }
+    .hidden { display: none; }
   </style>
 </head>
 <body>
@@ -44,12 +45,14 @@
       <option value="">選択なし</option>
     </select>
 
-    <label for="scholarship-status">奨学金の状況（任意）<span class="badge">任意</span></label>
-    <select id="scholarship-status" disabled>
-      <option value="">奨学金区分を先に選んでください</option>
-    </select>
+    <div id="scholarship-status-group" class="hidden">
+      <label for="scholarship-status">奨学金の状況（任意）<span class="badge">任意</span></label>
+      <select id="scholarship-status" disabled>
+        <option value="">奨学金区分を先に選んでください</option>
+      </select>
+    </div>
 
-    <div class="hint">奨学金区分を選ぶと、該当する書類が追加で表示されます。</div>
+    <div class="hint">奨学金区分を選ぶと該当する書類が表示されます。「日本政府以外の奨学金受給学生」を選んだ場合のみ、奨学金の状況に応じた提出ルールが追加されます。</div>
 
     <button id="show" disabled>必要書類を表示</button>
 
@@ -73,7 +76,7 @@
             "在学証明書（証明書自動発行機で発行）",
           ],
         },
-                {
+        {
           label: "前学期とは異なる身分で正規生として在籍（学部生→修士、修士→博士等）",
           requirements: [
             "成績証明書（証明書自動発行機で発行）",
@@ -82,7 +85,7 @@
           ],
         },
         {
-          label: "前学期、研究生として在籍",
+          label: "前学期、研究として在籍",
           requirements: [
             "在学証明書（証明書自動発行機で発行）",
             "外国人研究生証明書(別紙様式５)（旧所属の支援室で発行）",
@@ -166,12 +169,29 @@
     const SCHOLARSHIP_RULES = {
       "国費留学生": ["日本政府奨学金受給証明書（留学交流グループで発行）"],
       "日韓共同理工系学部留学生": ["日韓共同理工系学部留学生奨学金証明書（留学交流グループで発行）"],
-      "日本政府以外の奨学金受給学生": ["RULE"],
+      "日本政府以外の奨学金受給学生": ["奨学金受給証明書（原本。財団・企業等が発行）"],
+    };
+
+    const SCHOLARSHIP_STATUS_RULES = {
+      "前回申請以降に新たに奨学金を受給": [
+        "奨学金決定通知書（財団等が発行。作成できない場合は大学が発行した証明書）",
+        "通帳の写し（奨学金の入金が確認できるページ）",
+      ],
+      "前回申請時に奨学金証明書を提出済み": [
+        "奨学金証明書の再提出は不要です。通帳の写しの提出も不要です。",
+      ],
+      "現在も奨学金を受給中": [
+        "奨学金証明書（留学生の母国語および日本語で作成されたもの）",
+      ],
+      "前回申請から奨学金を受給していない": [
+        "前回の在留申請以降に奨学金の給付がない場合は、奨学金関連書類の提出は不要です。",
+      ],
     };
 
     const statusSelect = document.getElementById('status');
     const scenarioContainer = document.getElementById('scenario-container');
     const scholarshipSelect = document.getElementById('scholarship');
+    const scholarshipStatusGroup = document.getElementById('scholarship-status-group');
     const scholarshipStatusSelect = document.getElementById('scholarship-status');
     const showButton = document.getElementById('show');
     const results = document.getElementById('results');
@@ -195,10 +215,10 @@
     }
 
     function populateScholarshipStatuses() {
-      ['継続して受給', '新たに受給', '受給終了予定', '申請中'].forEach((status) => {
+      Object.keys(SCHOLARSHIP_STATUS_RULES).forEach((key) => {
         const option = document.createElement('option');
-        option.value = status;
-        option.textContent = status;
+        option.value = key;
+        option.textContent = key;
         scholarshipStatusSelect.appendChild(option);
       });
     }
@@ -314,7 +334,10 @@
     function showRequirements() {
       const status = statusSelect.value;
       const scholarship = scholarshipSelect.value;
-      const scholarshipStatus = scholarshipStatusSelect.value;
+      const scholarshipStatus =
+        scholarship === '日本政府以外の奨学金受給学生'
+          ? scholarshipStatusSelect.value
+          : '';
       const selectedScenarios = Array.from(
         scenarioContainer.querySelectorAll('select')
       )
@@ -340,6 +363,12 @@
         );
       }
 
+      if (scholarshipStatus) {
+        (SCHOLARSHIP_STATUS_RULES[scholarshipStatus] || []).forEach((item) =>
+          requirementSet.add(item)
+        );
+      }
+
       renderRequirements([...requirementSet], scholarshipStatus);
     }
 
@@ -349,16 +378,28 @@
     });
 
     scholarshipSelect.addEventListener('change', () => {
+      const isNonGovScholarship =
+        scholarshipSelect.value === '日本政府以外の奨学金受給学生';
+
       if (!scholarshipSelect.value) {
+        scholarshipStatusGroup.classList.add('hidden');
         scholarshipStatusSelect.value = '';
         scholarshipStatusSelect.disabled = true;
         scholarshipStatusSelect.options[0].textContent =
           '奨学金区分を先に選んでください';
-      } else {
+      } else if (isNonGovScholarship) {
+        scholarshipStatusGroup.classList.remove('hidden');
         scholarshipStatusSelect.disabled = false;
         scholarshipStatusSelect.options[0].textContent =
           '奨学金の状況を選択してください';
+      } else {
+        scholarshipStatusGroup.classList.add('hidden');
+        scholarshipStatusSelect.value = '';
+        scholarshipStatusSelect.disabled = true;
+        scholarshipStatusSelect.options[0].textContent =
+          '奨学金区分を先に選んでください';
       }
+
       showRequirements();
     });
 
