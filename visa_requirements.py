@@ -125,12 +125,54 @@ STATUS_RULES: Dict[str, List[Scenario]] = {
 
 
 STATUS_OPTIONAL_RULES: Dict[str, List[Scenario]] = {
-    "正規生": [],
-    "研究生": [],
+    "正規生": [
+        Scenario(label="標準修業年限を超えて研究する", requirements=[
+            "理由書(延長期間・理由を指導教員に記入してもらい、提出)(用紙は所属の支援室・留学交流グループにあります)"
+            ]),
+        Scenario(label="これから進学予定", requirements=[
+            "合格通知書(コピー)"
+            ]),
+    ],
+    "研究生": [
+        Scenario(label="1年以上研究生を続けている", requirements=[
+            "「外国人研究生について」の書類(所属の支援室に依頼)"
+            ]),
+        Scenario(label="大学院進学予定", requirements=[
+            "合格通知書(コピー)"
+            ]),
+        Scenario(label="研究継続予定", requirements=[
+            "研究継続許可書(コピー)"
+            ]),
+    ],
 }
 
 
-SCENARIO_OPTIONAL_RULES: Dict[str, Dict[str, List[Scenario]]] = {}
+SCENARIO_OPTIONAL_RULES: Dict[str, Dict[str, List[Scenario]]] = {
+    "研究生": {
+        "前学期、3+1特別聴講生(C)として在籍（9月で在留期限が切れる場合）": [
+            Scenario(label="これから研究生になる方", requirements=[
+                "外国人研究生 許可書(コピー)"
+                ]),
+            Scenario(label="修士に進学する方", requirements=[
+                "合格通知書(コピー)"
+                ]),
+        ]
+    }
+}
+
+
+SCENARIO_OPTIONAL_RULES: Dict[str, Dict[str, List[Scenario]]] = {
+    "特別聴講生": {
+        "前学期、他大学に在籍": [
+            Scenario(label="日本の大学に１年以上在籍", requirements=[
+                "理由書(本学と本人からの両方を１枚に)"
+                ]),
+            Scenario(label="本学に１年以上在籍", requirements=[
+                "理由書(本学と本人からの両方を１枚に)"
+                ]),
+        ]
+    }
+}
 
 
 SCHOLARSHIP_RULES: Dict[str, List[str]] = {
