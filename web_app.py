@@ -11,6 +11,7 @@ from flask import Flask, Response, render_template_string
 from visa_requirements import (
     COMMON_REQUIREMENTS,
     SCHOLARSHIP_RULES,
+    SCHOLARSHIP_STATUS_RULES,
     SCENARIO_OPTIONAL_RULES,
     STATUS_OPTIONAL_RULES,
     STATUS_RULES,
@@ -61,6 +62,9 @@ def index() -> Response:
         ensure_ascii=False,
     )
     scholarship_json = json.dumps(SCHOLARSHIP_RULES, ensure_ascii=False)
+    scholarship_status_json = json.dumps(
+        SCHOLARSHIP_STATUS_RULES, ensure_ascii=False
+    )
     common_json = json.dumps(COMMON_REQUIREMENTS, ensure_ascii=False)
 
     return render_template_string(
@@ -69,6 +73,7 @@ def index() -> Response:
         status_optional_json=status_optional_json,
         scenario_optional_json=scenario_optional_json,
         scholarship_json=scholarship_json,
+        scholarship_status_json=scholarship_status_json,
         common_json=common_json,
     )
 
@@ -91,6 +96,7 @@ INDEX_HTML = """
     button:disabled { background: #9ab9e8; cursor: not-allowed; }
     ul { padding-left: 1.2rem; }
     .muted { color: #555; }
+    .hidden { display: none; }
   </style>
 </head>
 <body>
@@ -110,12 +116,19 @@ INDEX_HTML = """
 
     <div id=\"options\" style=\"margin-top: 0.6rem;\"></div>
 
-    <label for=\"scholarship\">奨学金区分（任意）</label>
-    <select id=\"scholarship\">
-      <option value=\"\">選択なし</option>
-    </select>
+  <label for=\"scholarship\">奨学金区分（任意）</label>
+  <select id=\"scholarship\">
+    <option value=\"\">選択なし</option>
+  </select>
 
-    <button id=\"show\" disabled>必要書類を表示</button>
+  <div id=\"scholarship-status-group\" class=\"hidden\" style=\"margin-top: 0.6rem;\">
+    <label for=\"scholarship-status\">奨学金の状況（任意）</label>
+    <select id=\"scholarship-status\" disabled>
+      <option value=\"\">奨学金区分を先に選んでください</option>
+    </select>
+  </div>
+
+  <button id=\"show\" disabled>必要書類を表示</button>
 
     <div id=\"results\" style=\"margin-top: 1.4rem;\"></div>
   </div>
@@ -123,13 +136,20 @@ INDEX_HTML = """
   <script>
     const statusData = {{ status_json | safe }};
     const scholarshipData = {{ scholarship_json | safe }};
+    const scholarshipStatusData = {{ scholarship_status_json | safe }};
     const commonRequirements = {{ common_json | safe }};
     const statusOptionalData = {{ status_optional_json | safe }};
     const scenarioOptionalData = {{ scenario_optional_json | safe }};
+    const nonGovScholarships = [
+      "日本政府以外の給付型の奨学金受給学生",
+      "日本政府以外の貸与型の奨学金受給学生",
+    ];
 
     const statusSelect = document.getElementById('status');
     const scenarioSelect = document.getElementById('scenario');
     const scholarshipSelect = document.getElementById('scholarship');
+    const scholarshipStatusGroup = document.getElementById('scholarship-status-group');
+    const scholarshipStatusSelect = document.getElementById('scholarship-status');
     const showButton = document.getElementById('show');
     const results = document.getElementById('results');
     const optionsContainer = document.getElementById('options');
@@ -149,6 +169,15 @@ INDEX_HTML = """
         option.value = key;
         option.textContent = key;
         scholarshipSelect.appendChild(option);
+      });
+    }
+
+    function populateScholarshipStatuses() {
+      Object.keys(scholarshipStatusData).forEach((key) => {
+        const option = document.createElement('option');
+        option.value = key;
+        option.textContent = key;
+        scholarshipStatusSelect.appendChild(option);
       });
     }
 
@@ -266,6 +295,9 @@ INDEX_HTML = """
       const status = statusSelect.value;
       const scenarioLabel = scenarioSelect.value;
       const scholarship = scholarshipSelect.value;
+      const scholarshipStatus = nonGovScholarships.includes(scholarship)
+        ? scholarshipStatusSelect.value
+        : '';
       if (!status || !scenarioLabel) {
         renderRequirements([]);
         return;
@@ -278,6 +310,9 @@ INDEX_HTML = """
         ...(scenario ? scenario.requirements : []),
         ...optionalRequirements,
         ...(scholarship ? (scholarshipData[scholarship] || []) : []),
+        ...(scholarshipStatus
+          ? scholarshipStatusData[scholarshipStatus] || []
+          : []),
       ];
       renderRequirements(requirements);
     }
@@ -293,10 +328,30 @@ INDEX_HTML = """
     });
 
     scholarshipSelect.addEventListener('change', showRequirements);
+    scholarshipSelect.addEventListener('change', () => {
+      const isNonGov = nonGovScholarships.includes(scholarshipSelect.value);
+      if (!scholarshipSelect.value) {
+        scholarshipStatusGroup.classList.add('hidden');
+        scholarshipStatusSelect.value = '';
+        scholarshipStatusSelect.disabled = true;
+        scholarshipStatusSelect.options[0].textContent = '奨学金区分を先に選んでください';
+      } else if (isNonGov) {
+        scholarshipStatusGroup.classList.remove('hidden');
+        scholarshipStatusSelect.disabled = false;
+        scholarshipStatusSelect.options[0].textContent = '奨学金の状況を選択してください';
+      } else {
+        scholarshipStatusGroup.classList.add('hidden');
+        scholarshipStatusSelect.value = '';
+        scholarshipStatusSelect.disabled = true;
+        scholarshipStatusSelect.options[0].textContent = '奨学金区分を先に選んでください';
+      }
+    });
+    scholarshipStatusSelect.addEventListener('change', showRequirements);
     showButton.addEventListener('click', showRequirements);
 
     populateStatuses();
     populateScholarships();
+    populateScholarshipStatuses();
   </script>
 </body>
 </html>

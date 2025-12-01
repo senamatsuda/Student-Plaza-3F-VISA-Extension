@@ -173,6 +173,11 @@
       "日本政府以外の貸与型の奨学金受給学生": ["留学生の母国語および日本語で作成された契約書等"],
     };
 
+    const NON_GOV_SCHOLARSHIPS = [
+      "日本政府以外の給付型の奨学金受給学生",
+      "日本政府以外の貸与型の奨学金受給学生",
+    ];
+
     const SCHOLARSHIP_STATUS_RULES = {
       "前回申請以降に新たに奨学金を受給": [
         "奨学金決定通知書（財団等が発行。作成できない場合は大学が発行した証明書）",
@@ -332,10 +337,9 @@
     function showRequirements() {
       const status = statusSelect.value;
       const scholarship = scholarshipSelect.value;
-      const scholarshipStatus =
-        scholarship === '日本政府以外の奨学金受給学生'
-          ? scholarshipStatusSelect.value
-          : '';
+      const scholarshipStatus = NON_GOV_SCHOLARSHIPS.includes(scholarship)
+        ? scholarshipStatusSelect.value
+        : '';
       const selectedScenarios = Array.from(
         scenarioContainer.querySelectorAll('select')
       )
@@ -376,8 +380,9 @@
     });
 
     scholarshipSelect.addEventListener('change', () => {
-      const isNonGovScholarship =
-        scholarshipSelect.value === '日本政府以外の給付型の奨学金受給学生' || "日本政府以外の貸与型の奨学金受給学生";
+      const isNonGovScholarship = NON_GOV_SCHOLARSHIPS.includes(
+        scholarshipSelect.value
+      );
 
       if (!scholarshipSelect.value) {
         scholarshipStatusGroup.classList.add('hidden');
