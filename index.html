@@ -377,7 +377,7 @@
 
     scholarshipSelect.addEventListener('change', () => {
       const isNonGovScholarship =
-        scholarshipSelect.value === '日本政府以外の奨学金受給学生';
+        scholarshipSelect.value === '日本政府以外の給付型の奨学金受給学生' || "日本政府以外の貸与型の奨学金受給学生";
 
       if (!scholarshipSelect.value) {
         scholarshipStatusGroup.classList.add('hidden');
