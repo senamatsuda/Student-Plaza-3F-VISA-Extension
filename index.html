@@ -13,34 +13,30 @@
     select { width: 100%; padding: 0.55rem; font-size: 1rem; border-radius: 8px; border: 1px solid #c6c6c6; background: #fff; }
     button { margin-top: 1.1rem; padding: 0.7rem 1.05rem; font-size: 1rem; border-radius: 10px; border: 0; background: #0069d9; color: #fff; cursor: pointer; box-shadow: 0 3px 10px rgba(0, 105, 217, 0.2); }
     button:disabled { background: #9ab9e8; cursor: not-allowed; box-shadow: none; }
-    ul { padding-left: 0; list-style: none; }
-    .checkbox-item { display: flex; gap: 0.55rem; align-items: flex-start; margin-bottom: 0.35rem; }
-    .checkbox-item input { margin-top: 0.25rem; }
+    ul { padding-left: 1.1rem; }
     .muted { color: #555; }
     .hint { font-size: 0.95rem; margin-top: 0.6rem; color: #333; }
-    .stack { display: grid; gap: 0.75rem; margin-top: 1.2rem; }
-    .badge { display: inline-block; padding: 0.2rem 0.45rem; border-radius: 6px; background: #eef2ff; color: #223; font-size: 0.85rem; margin-left: 0.35rem; }
     .hidden { display: none; }
+    .options h3 { font-size: 1rem; margin: 0 0 0.35rem; }
+    .options label { font-weight: 500; display: flex; gap: 0.45rem; align-items: center; margin-top: 0.35rem; }
   </style>
 </head>
 <body>
   <div class="card">
     <h1>在留期間更新に必要な書類</h1>
-    <p class="muted">身分・状況・奨学金区分を選ぶと、提出が必要な書類が表示されます。<br>
-    前回在留期間更新をしてから今までの身分・状況・奨学金について選択してください。
-    </p>
+    <p class="muted">身分・状況・奨学金区分を選ぶと、提出が必要な書類が表示されます。<br>該当する追加条件があればチェックしてください。</p>
 
-    <label for="status">現在の身分</label>
+    <label for="status">身分</label>
     <select id="status">
       <option value="">選択してください</option>
     </select>
 
     <label for="scenario">状況</label>
-    <div id="scenario-container" class="stack">
-      <select id="scenario" disabled>
-        <option value="">身分を先に選んでください</option>
-      </select>
-    </div>
+    <select id="scenario" disabled>
+      <option value="">身分を先に選んでください</option>
+    </select>
+
+    <div id="options" class="options"></div>
 
     <label for="scholarship">奨学金区分（任意）<span class="badge">任意</span></label>
     <select id="scholarship">
@@ -69,7 +65,7 @@
       "6,000円分の収入印紙",
     ];
 
-    const STATUS_RULES = {
+    const STATUS_DATA = {
       "正規生": [
         {
           label: "前学期も同じ身分で正規生として在籍",
@@ -82,7 +78,7 @@
           label: "前学期とは異なる身分で正規生として在籍（学部生→修士、修士→博士等）",
           requirements: [
             "成績証明書（証明書自動発行機で発行）",
-            "在学証明書（証明書自動発行機で発行）",
+            "在学証明書（証明書自動発行で発行）",
             "修了証明書（旧所属の支援室で発行）",
           ],
         },
@@ -168,19 +164,58 @@
       ],
     };
 
-    const SCHOLARSHIP_RULES = {
+    const STATUS_OPTIONAL_DATA = {
+      "正規生": [
+        {
+          label: "標準修業年限を超えて研究する",
+          requirements: [
+            "理由書(延長期間・理由を指導教員に記入してもらい、提出)(用紙は所属の支援室・留学交流グループにあります)",
+          ],
+        },
+        {
+          label: "これから進学予定",
+          requirements: ["合格通知書(コピー)"],
+        },
+      ],
+      "研究生": [
+        {
+          label: "1年以上研究生を続けている",
+          requirements: ["「外国人研究生について」の書類(所属の支援室に依頼)"],
+        },
+        {
+          label: "大学院進学予定",
+          requirements: ["合格通知書(コピー)"],
+        },
+        {
+          label: "研究継続予定",
+          requirements: ["研究継続許可書(コピー)"],
+        },
+      ],
+    };
+
+    const SCENARIO_OPTIONAL_DATA = {
+      "研究生": {
+        "前学期、3+1特別聴講生(C)として在籍（9月で在留期限が切れる場合）": [
+          { label: "これから研究生になる方", requirements: ["外国人研究生 許可書(コピー)"] },
+          { label: "修士に進学する方", requirements: ["合格通知書(コピー)"] },
+        ],
+      },
+      "特別聴講学生": {
+        "前学期、他大学に在籍": [
+          { label: "日本の大学に１年以上在籍", requirements: ["理由書(本学と本人からの両方を１枚に)"] },
+          { label: "本学に１年以上在籍", requirements: ["理由書(本学と本人からの両方を１枚に)"] },
+        ],
+      },
+    };
+
+    const SCHOLARSHIP_DATA = {
       "国費留学生": ["日本政府奨学金受給証明書（留学交流グループで発行）"],
       "日韓共同理工系学部留学生": ["日韓共同理工系学部留学生奨学金証明書（留学交流グループで発行）"],
       "日本政府以外の給付型の奨学金受給学生": ["奨学金証明書（コピー）"],
       "日本政府以外の貸与型の奨学金受給学生": ["留学生の母国語および日本語で作成された契約書等"],
     };
 
-    const NON_GOV_SCHOLARSHIPS = [
-      "日本政府以外の給付型の奨学金受給学生",
-      "日本政府以外の貸与型の奨学金受給学生",
-    ];
-
-    const SCHOLARSHIP_STATUS_RULES = {
+    const SCHOLARSHIP_STATUS_DATA = {
       "前回申請以降に新たに奨学金を受給": [
         "奨学金決定通知書（財団等が発行。作成できない場合は大学が発行した証明書）",
         "通帳の写し（奨学金の入金が確認できるページ）",
@@ -190,16 +225,22 @@
       ],
     };
 
+    const NON_GOV_SCHOLARSHIPS = [
+      "日本政府以外の給付型の奨学金受給学生",
+      "日本政府以外の貸与型の奨学金受給学生",
+    ];
+
     const statusSelect = document.getElementById('status');
-    const scenarioContainer = document.getElementById('scenario-container');
+    const scenarioSelect = document.getElementById('scenario');
     const scholarshipSelect = document.getElementById('scholarship');
     const scholarshipStatusGroup = document.getElementById('scholarship-status-group');
     const scholarshipStatusSelect = document.getElementById('scholarship-status');
     const showButton = document.getElementById('show');
     const results = document.getElementById('results');
+    const optionsContainer = document.getElementById('options');
 
     function populateStatuses() {
-      Object.keys(STATUS_RULES).forEach((status) => {
+      Object.keys(STATUS_DATA).forEach((status) => {
         const option = document.createElement('option');
         option.value = status;
         option.textContent = status;
@@ -208,7 +249,7 @@
     }
 
     function populateScholarships() {
-      Object.keys(SCHOLARSHIP_RULES).forEach((key) => {
+      Object.keys(SCHOLARSHIP_DATA).forEach((key) => {
         const option = document.createElement('option');
         option.value = key;
         option.textContent = key;
@@ -217,7 +258,7 @@
     }
 
     function populateScholarshipStatuses() {
-      Object.keys(SCHOLARSHIP_STATUS_RULES).forEach((key) => {
+      Object.keys(SCHOLARSHIP_STATUS_DATA).forEach((key) => {
         const option = document.createElement('option');
         option.value = key;
         option.textContent = key;
@@ -225,88 +266,77 @@
       });
     }
 
-    function renderScenarioPlaceholder() {
-      scenarioContainer.innerHTML = '';
-      const select = document.createElement('select');
-      select.disabled = true;
-      const option = document.createElement('option');
-      option.value = '';
-      option.textContent = '身分を先に選んでください';
-      select.appendChild(option);
-      scenarioContainer.appendChild(select);
-      showButton.disabled = true;
-    }
+    function renderOptions() {
+      optionsContainer.innerHTML = '';
+      const status = statusSelect.value;
+      if (!status) return;
 
-    function addScenarioSelect(options, placeholder, preselected = '') {
-      const select = document.createElement('select');
-      const emptyOption = document.createElement('option');
-      emptyOption.value = '';
-      emptyOption.textContent = placeholder;
-      select.appendChild(emptyOption);
-
-      options.forEach((label) => {
-        const option = document.createElement('option');
-        option.value = label;
-        option.textContent = label;
-        select.appendChild(option);
-      });
-
-      if (preselected && options.includes(preselected)) {
-        select.value = preselected;
+      const optionItems = [];
+      if (STATUS_OPTIONAL_DATA[status]) {
+        optionItems.push(...STATUS_OPTIONAL_DATA[status]);
       }
 
-      select.addEventListener('change', syncScenarioSelects);
-      scenarioContainer.appendChild(select);
+      const scenarioLabel = scenarioSelect.value;
+      if (
+        scenarioLabel &&
+        SCENARIO_OPTIONAL_DATA[status] &&
+        SCENARIO_OPTIONAL_DATA[status][scenarioLabel]
+      ) {
+        optionItems.push(...SCENARIO_OPTIONAL_DATA[status][scenarioLabel]);
+      }
+
+      if (!optionItems.length) return;
+
+      const wrapper = document.createElement('div');
+      const heading = document.createElement('h3');
+      heading.textContent = '該当する場合はチェックを入れてください';
+      wrapper.appendChild(heading);
+
+      optionItems.forEach((item, idx) => {
+        const label = document.createElement('label');
+        label.htmlFor = `option-${idx}`;
+
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.id = `option-${idx}`;
+        checkbox.dataset.requirements = JSON.stringify(item.requirements || []);
+        checkbox.addEventListener('change', showRequirements);
+
+        const text = document.createElement('span');
+        text.textContent = item.label;
+
+        label.appendChild(checkbox);
+        label.appendChild(text);
+        wrapper.appendChild(label);
+      });
+
+      optionsContainer.appendChild(wrapper);
     }
 
-    function getScenarioOptionsForStatus(status) {
-      return STATUS_RULES[status]?.map((item) => item.label) || [];
-    }
-
-    function syncScenarioSelects() {
+    function refreshScenarios() {
       const status = statusSelect.value;
+      scenarioSelect.innerHTML = '';
       if (!status) {
-        renderScenarioPlaceholder();
+        const option = document.createElement('option');
+        option.value = '';
+        option.textContent = '身分を先に選んでください';
+        scenarioSelect.appendChild(option);
+        scenarioSelect.disabled = true;
+        showButton.disabled = true;
+        renderOptions();
         return;
       }
 
-      const allOptions = getScenarioOptionsForStatus(status);
-      const selectedValues = Array.from(
-        scenarioContainer.querySelectorAll('select')
-      )
-        .map((select) => select.value)
-        .filter((value) => value && allOptions.includes(value));
-
-      const uniqueSelections = [];
-      selectedValues.forEach((value) => {
-        if (!uniqueSelections.includes(value)) {
-          uniqueSelections.push(value);
-        }
+      STATUS_DATA[status].forEach((scenario) => {
+        const option = document.createElement('option');
+        option.value = scenario.label;
+        option.textContent = scenario.label;
+        scenarioSelect.appendChild(option);
       });
-
-      scenarioContainer.innerHTML = '';
-      let remainingOptions = [...allOptions];
-
-      uniqueSelections.forEach((selected, index) => {
-        addScenarioSelect(
-          remainingOptions,
-          index === 0 ? '状況を選択してください' : '追加で選択（任意）',
-          selected
-        );
-        remainingOptions = remainingOptions.filter((option) => option !== selected);
-      });
-
-      if (remainingOptions.length) {
-        addScenarioSelect(
-          remainingOptions,
-          uniqueSelections.length === 0
-            ? '状況を選択してください'
-            : '追加で選択（任意）'
-        );
-      }
-
-      showButton.disabled = uniqueSelections.length === 0;
-      showRequirements();
+      scenarioSelect.disabled = false;
+      scenarioSelect.selectedIndex = 0;
+      showButton.disabled = !scenarioSelect.value;
+      renderOptions();
     }
 
     function renderRequirements(requirements, scholarshipStatus) {
@@ -315,26 +345,16 @@
         const empty = document.createElement('p');
         empty.textContent = '必要な書類はありません。';
         results.appendChild(empty);
-      } else {
-        const list = document.createElement('ul');
-        requirements.forEach((item, index) => {
-          const li = document.createElement('li');
-          li.className = 'checkbox-item';
-
-          const checkbox = document.createElement('input');
-          checkbox.type = 'checkbox';
-          checkbox.id = `requirement-${index}`;
-
-          const label = document.createElement('label');
-          label.setAttribute('for', checkbox.id);
-          label.textContent = item;
-
-          li.appendChild(checkbox);
-          li.appendChild(label);
-          list.appendChild(li);
-        });
-        results.appendChild(list);
+        return;
       }
+
+      const list = document.createElement('ul');
+      requirements.forEach((item) => {
+        const li = document.createElement('li');
+        li.textContent = item;
+        list.appendChild(li);
+      });
+      results.appendChild(list);
 
       if (scholarshipStatus) {
         const statusNote = document.createElement('p');
@@ -344,85 +364,76 @@
       }
     }
 
+    function getSelectedOptionalRequirements() {
+      const checkboxes = optionsContainer.querySelectorAll('input[type="checkbox"]:checked');
+      return Array.from(checkboxes).flatMap((checkbox) => {
+        try {
+          return JSON.parse(checkbox.dataset.requirements || '[]');
+        } catch (err) {
+          return [];
+        }
+      });
+    }
+
     function showRequirements() {
       const status = statusSelect.value;
+      const scenarioLabel = scenarioSelect.value;
       const scholarship = scholarshipSelect.value;
       const scholarshipStatus = NON_GOV_SCHOLARSHIPS.includes(scholarship)
         ? scholarshipStatusSelect.value
         : '';
-      const selectedScenarios = Array.from(
-        scenarioContainer.querySelectorAll('select')
-      )
-        .map((select) => select.value)
-        .filter(Boolean);
-
-      if (!status || !selectedScenarios.length) {
+      if (!status || !scenarioLabel) {
         renderRequirements([], scholarshipStatus);
         return;
       }
 
-      const requirementSet = new Set(COMMON_REQUIREMENTS);
-      selectedScenarios.forEach((scenarioLabel) => {
-        const scenario = STATUS_RULES[status].find(
-          (item) => item.label === scenarioLabel
-        );
-        (scenario?.requirements || []).forEach((item) => requirementSet.add(item));
-      });
-
-      if (scholarship) {
-        (SCHOLARSHIP_RULES[scholarship] || []).forEach((item) =>
-          requirementSet.add(item)
-        );
-      }
-
-      if (scholarshipStatus) {
-        (SCHOLARSHIP_STATUS_RULES[scholarshipStatus] || []).forEach((item) =>
-          requirementSet.add(item)
-        );
-      }
-
-      renderRequirements([...requirementSet], scholarshipStatus);
+      const scenario = STATUS_DATA[status].find((item) => item.label === scenarioLabel);
+      const optionalRequirements = getSelectedOptionalRequirements();
+      const requirements = [
+        ...COMMON_REQUIREMENTS,
+        ...(scenario ? scenario.requirements : []),
+        ...optionalRequirements,
+        ...(scholarship ? SCHOLARSHIP_DATA[scholarship] || [] : []),
+        ...(scholarshipStatus ? SCHOLARSHIP_STATUS_DATA[scholarshipStatus] || [] : []),
+      ];
+      renderRequirements(requirements, scholarshipStatus);
     }
 
     statusSelect.addEventListener('change', () => {
-      syncScenarioSelects();
+      refreshScenarios();
       showRequirements();
     });
 
-    scholarshipSelect.addEventListener('change', () => {
-      const isNonGovScholarship = NON_GOV_SCHOLARSHIPS.includes(
-        scholarshipSelect.value
-      );
+    scenarioSelect.addEventListener('change', () => {
+      showButton.disabled = !scenarioSelect.value;
+      renderOptions();
+    });
 
+    scholarshipSelect.addEventListener('change', showRequirements);
+    scholarshipSelect.addEventListener('change', () => {
+      const isNonGov = NON_GOV_SCHOLARSHIPS.includes(scholarshipSelect.value);
       if (!scholarshipSelect.value) {
         scholarshipStatusGroup.classList.add('hidden');
         scholarshipStatusSelect.value = '';
         scholarshipStatusSelect.disabled = true;
-        scholarshipStatusSelect.options[0].textContent =
-          '奨学金区分を先に選んでください';
-      } else if (isNonGovScholarship) {
+        scholarshipStatusSelect.options[0].textContent = '奨学金区分を先に選んでください';
+      } else if (isNonGov) {
         scholarshipStatusGroup.classList.remove('hidden');
         scholarshipStatusSelect.disabled = false;
-        scholarshipStatusSelect.options[0].textContent =
-          '奨学金の状況を選択してください';
+        scholarshipStatusSelect.options[0].textContent = '奨学金の状況を選択してください';
       } else {
         scholarshipStatusGroup.classList.add('hidden');
         scholarshipStatusSelect.value = '';
         scholarshipStatusSelect.disabled = true;
-        scholarshipStatusSelect.options[0].textContent =
-          '奨学金区分を先に選んでください';
+        scholarshipStatusSelect.options[0].textContent = '奨学金区分を先に選んでください';
       }
-
-      showRequirements();
     });
-
     scholarshipStatusSelect.addEventListener('change', showRequirements);
     showButton.addEventListener('click', showRequirements);
 
     populateStatuses();
     populateScholarships();
     populateScholarshipStatuses();
-    renderScenarioPlaceholder();
   </script>
 </body>
 </html>
