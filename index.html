@@ -33,13 +33,20 @@
     </select>
 
     <label for="scenario">状況</label>
-    <select id="scenario" disabled>
-      <option value="">身分を先に選んでください</option>
-    </select>
+    <div id="scenario-container" class="stack">
+      <select id="scenario" disabled>
+        <option value="">身分を先に選んでください</option>
+      </select>
+    </div>
 
     <label for="scholarship">奨学金区分（任意）<span class="badge">任意</span></label>
     <select id="scholarship">
       <option value="">選択なし</option>
+    </select>
+
+    <label for="scholarship-status">奨学金の状況（任意）<span class="badge">任意</span></label>
+    <select id="scholarship-status" disabled>
+      <option value="">奨学金区分を先に選んでください</option>
     </select>
 
     <div class="hint">奨学金区分を選ぶと、該当する書類が追加で表示されます。</div>
@@ -52,8 +59,7 @@
   <script>
     const COMMON_REQUIREMENTS = [
       "在留期間更新許可申請書（申請人等作成用の3枚 + 所属機関等作成用の2枚）",
-      "提出書類一覧表、各在学証明書（両方提出必須。2025年1月申請分から提出が必須）",
-      "成績証明書、在学証明書等（証明書のコピーはマスキングせずに提出）",
+      "提出書類一覧表、各種類確認書（両方提出必須。2025年1月申請分から提出が必須）",
       "パスポート、在留カード（原本を持参・提示してください）",
       "6,000円分の収入印紙",
     ];
@@ -164,8 +170,9 @@
     };
 
     const statusSelect = document.getElementById('status');
-    const scenarioSelect = document.getElementById('scenario');
+    const scenarioContainer = document.getElementById('scenario-container');
     const scholarshipSelect = document.getElementById('scholarship');
+    const scholarshipStatusSelect = document.getElementById('scholarship-status');
     const showButton = document.getElementById('show');
     const results = document.getElementById('results');
 
@@ -187,79 +194,181 @@
       });
     }
 
-    function refreshScenarios() {
-      const status = statusSelect.value;
-      scenarioSelect.innerHTML = '';
-      if (!status) {
+    function populateScholarshipStatuses() {
+      ['継続して受給', '新たに受給', '受給終了予定', '申請中'].forEach((status) => {
         const option = document.createElement('option');
-        option.value = '';
-        option.textContent = '身分を先に選んでください';
-        scenarioSelect.appendChild(option);
-        scenarioSelect.disabled = true;
-        showButton.disabled = true;
+        option.value = status;
+        option.textContent = status;
+        scholarshipStatusSelect.appendChild(option);
+      });
+    }
+
+    function renderScenarioPlaceholder() {
+      scenarioContainer.innerHTML = '';
+      const select = document.createElement('select');
+      select.disabled = true;
+      const option = document.createElement('option');
+      option.value = '';
+      option.textContent = '身分を先に選んでください';
+      select.appendChild(option);
+      scenarioContainer.appendChild(select);
+      showButton.disabled = true;
+    }
+
+    function addScenarioSelect(options, placeholder, preselected = '') {
+      const select = document.createElement('select');
+      const emptyOption = document.createElement('option');
+      emptyOption.value = '';
+      emptyOption.textContent = placeholder;
+      select.appendChild(emptyOption);
+
+      options.forEach((label) => {
+        const option = document.createElement('option');
+        option.value = label;
+        option.textContent = label;
+        select.appendChild(option);
+      });
+
+      if (preselected && options.includes(preselected)) {
+        select.value = preselected;
+      }
+
+      select.addEventListener('change', syncScenarioSelects);
+      scenarioContainer.appendChild(select);
+    }
+
+    function getScenarioOptionsForStatus(status) {
+      return STATUS_RULES[status]?.map((item) => item.label) || [];
+    }
+
+    function syncScenarioSelects() {
+      const status = statusSelect.value;
+      if (!status) {
+        renderScenarioPlaceholder();
         return;
       }
 
-      STATUS_RULES[status].forEach((scenario) => {
-        const option = document.createElement('option');
-        option.value = scenario.label;
-        option.textContent = scenario.label;
-        scenarioSelect.appendChild(option);
+      const allOptions = getScenarioOptionsForStatus(status);
+      const selectedValues = Array.from(
+        scenarioContainer.querySelectorAll('select')
+      )
+        .map((select) => select.value)
+        .filter((value) => value && allOptions.includes(value));
+
+      const uniqueSelections = [];
+      selectedValues.forEach((value) => {
+        if (!uniqueSelections.includes(value)) {
+          uniqueSelections.push(value);
+        }
       });
-      scenarioSelect.disabled = false;
-      showButton.disabled = !scenarioSelect.value;
+
+      scenarioContainer.innerHTML = '';
+      let remainingOptions = [...allOptions];
+
+      uniqueSelections.forEach((selected, index) => {
+        addScenarioSelect(
+          remainingOptions,
+          index === 0 ? '状況を選択してください' : '追加で選択（任意）',
+          selected
+        );
+        remainingOptions = remainingOptions.filter((option) => option !== selected);
+      });
+
+      if (remainingOptions.length) {
+        addScenarioSelect(
+          remainingOptions,
+          uniqueSelections.length === 0
+            ? '状況を選択してください'
+            : '追加で選択（任意）'
+        );
+      }
+
+      showButton.disabled = uniqueSelections.length === 0;
+      showRequirements();
     }
 
-    function renderRequirements(requirements) {
+    function renderRequirements(requirements, scholarshipStatus) {
       results.innerHTML = '';
       if (!requirements.length) {
         const empty = document.createElement('p');
         empty.textContent = '必要な書類はありません。';
         results.appendChild(empty);
-        return;
+      } else {
+        const list = document.createElement('ul');
+        requirements.forEach((item) => {
+          const li = document.createElement('li');
+          li.textContent = item;
+          list.appendChild(li);
+        });
+        results.appendChild(list);
       }
 
-      const list = document.createElement('ul');
-      requirements.forEach((item) => {
-        const li = document.createElement('li');
-        li.textContent = item;
-        list.appendChild(li);
-      });
-      results.appendChild(list);
+      if (scholarshipStatus) {
+        const statusNote = document.createElement('p');
+        statusNote.className = 'muted';
+        statusNote.textContent = `奨学金の状況: ${scholarshipStatus}`;
+        results.appendChild(statusNote);
+      }
     }
 
     function showRequirements() {
       const status = statusSelect.value;
-      const scenarioLabel = scenarioSelect.value;
       const scholarship = scholarshipSelect.value;
-      if (!status || !scenarioLabel) {
-        renderRequirements([]);
+      const scholarshipStatus = scholarshipStatusSelect.value;
+      const selectedScenarios = Array.from(
+        scenarioContainer.querySelectorAll('select')
+      )
+        .map((select) => select.value)
+        .filter(Boolean);
+
+      if (!status || !selectedScenarios.length) {
+        renderRequirements([], scholarshipStatus);
         return;
       }
 
-      const scenario = STATUS_RULES[status].find((item) => item.label === scenarioLabel);
-      const requirements = [
-        ...COMMON_REQUIREMENTS,
-        ...(scenario ? scenario.requirements : []),
-        ...(scholarship ? (SCHOLARSHIP_RULES[scholarship] || []) : []),
-      ];
-      renderRequirements(requirements);
+      const requirementSet = new Set(COMMON_REQUIREMENTS);
+      selectedScenarios.forEach((scenarioLabel) => {
+        const scenario = STATUS_RULES[status].find(
+          (item) => item.label === scenarioLabel
+        );
+        (scenario?.requirements || []).forEach((item) => requirementSet.add(item));
+      });
+
+      if (scholarship) {
+        (SCHOLARSHIP_RULES[scholarship] || []).forEach((item) =>
+          requirementSet.add(item)
+        );
+      }
+
+      renderRequirements([...requirementSet], scholarshipStatus);
     }
 
     statusSelect.addEventListener('change', () => {
-      refreshScenarios();
+      syncScenarioSelects();
       showRequirements();
     });
 
-    scenarioSelect.addEventListener('change', () => {
-      showButton.disabled = !scenarioSelect.value;
+    scholarshipSelect.addEventListener('change', () => {
+      if (!scholarshipSelect.value) {
+        scholarshipStatusSelect.value = '';
+        scholarshipStatusSelect.disabled = true;
+        scholarshipStatusSelect.options[0].textContent =
+          '奨学金区分を先に選んでください';
+      } else {
+        scholarshipStatusSelect.disabled = false;
+        scholarshipStatusSelect.options[0].textContent =
+          '奨学金の状況を選択してください';
+      }
+      showRequirements();
     });
 
-    scholarshipSelect.addEventListener('change', showRequirements);
+    scholarshipStatusSelect.addEventListener('change', showRequirements);
     showButton.addEventListener('click', showRequirements);
 
     populateStatuses();
     populateScholarships();
+    populateScholarshipStatuses();
+    renderScenarioPlaceholder();
   </script>
 </body>
 </html>
