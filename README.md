@@ -16,7 +16,13 @@ python visa_requirements.py
 身分 → 状況 → 奨学金の順に選ぶと、提出書類が一覧で表示されます。
 
 ## Web版
-身分・状況・奨学金区分をプルダウンで選んで必要書類を確認できる簡易Web UIを追加しました。
+GitHub Pages 上で動作する静的版を用意しました。ページを開くだけで利用できます。
+
+- 公開URL: https://senamatsuda.github.io/Student-Plaza-3F-VISA-Extension/
+- 使い方: 身分 → 状況 → 奨学金区分（任意）の順にプルダウンを選ぶと必要書類が表示されます。
+
+### ローカルで Flask サーバーを動かす場合（任意）
+`web_app.py` はこれまで通りローカルサーバーとしても起動できます。
 
 1. 依存関係（Flask）のインストール
    ```
