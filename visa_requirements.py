@@ -99,6 +99,28 @@ STATUS_RULES: Dict[str, List[Scenario]] = {
 }
 
 
+STATUS_OPTIONAL_RULES: Dict[str, List[Scenario]] = {
+    "正規生": [
+        Scenario(label="標準修業年限を超えて研究する", requirements=["RULE"]),
+        Scenario(label="これから進学予定", requirements=["RULE"]),
+    ],
+    "研究生": [
+        Scenario(label="1年以上研究生を続けている", requirements=["RULE"]),
+        Scenario(label="大学院進学予定", requirements=["RULE"]),
+        Scenario(label="研究継続予定", requirements=["RULE"]),
+    ],
+}
+
+
+SCENARIO_OPTIONAL_RULES: Dict[str, Dict[str, List[Scenario]]] = {
+    "研究生": {
+        "前学期に3科目以上を履修（10単位程度）": [
+            Scenario(label="これから研究生になる方", requirements=["RULE"])
+        ],
+    }
+}
+
+
 SCHOLARSHIP_RULES: Dict[str, List[str]] = {
     "国費留学生": [
         "日本政府奨学金受給証明書（留学交流グループで発行）",

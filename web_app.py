@@ -8,7 +8,13 @@ from typing import Dict, List
 
 from flask import Flask, Response, render_template_string
 
-from visa_requirements import COMMON_REQUIREMENTS, SCHOLARSHIP_RULES, STATUS_RULES
+from visa_requirements import (
+    COMMON_REQUIREMENTS,
+    SCHOLARSHIP_RULES,
+    SCENARIO_OPTIONAL_RULES,
+    STATUS_OPTIONAL_RULES,
+    STATUS_RULES,
+)
 
 app = Flask(__name__)
 
@@ -22,16 +28,46 @@ def build_status_payload() -> Dict[str, List[Dict[str, List[str]]]]:
     }
 
 
+def build_optional_payload(
+    optional_rules: Dict[str, List]
+) -> Dict[str, List[Dict[str, List[str]]]]:
+    return {
+        status: [
+            {"label": option.label, "requirements": option.requirements}
+            for option in options
+        ]
+        for status, options in optional_rules.items()
+    }
+
+
 @app.route("/")
 def index() -> Response:
     status_payload = build_status_payload()
     status_json = json.dumps(status_payload, ensure_ascii=False)
+    status_optional_json = json.dumps(
+        build_optional_payload(STATUS_OPTIONAL_RULES), ensure_ascii=False
+    )
+    scenario_optional_json = json.dumps(
+        {
+            status: {
+                scenario: [
+                    {"label": sc.label, "requirements": sc.requirements}
+                    for sc in options
+                ]
+                for scenario, options in scenario_options.items()
+            }
+            for status, scenario_options in SCENARIO_OPTIONAL_RULES.items()
+        },
+        ensure_ascii=False,
+    )
     scholarship_json = json.dumps(SCHOLARSHIP_RULES, ensure_ascii=False)
     common_json = json.dumps(COMMON_REQUIREMENTS, ensure_ascii=False)
 
     return render_template_string(
         INDEX_HTML,
         status_json=status_json,
+        status_optional_json=status_optional_json,
+        scenario_optional_json=scenario_optional_json,
         scholarship_json=scholarship_json,
         common_json=common_json,
     )
@@ -72,6 +108,8 @@ INDEX_HTML = """
       <option value=\"\">身分を先に選んでください</option>
     </select>
 
+    <div id=\"options\" style=\"margin-top: 0.6rem;\"></div>
+
     <label for=\"scholarship\">奨学金区分（任意）</label>
     <select id=\"scholarship\">
       <option value=\"\">選択なし</option>
@@ -86,12 +124,15 @@ INDEX_HTML = """
     const statusData = {{ status_json | safe }};
     const scholarshipData = {{ scholarship_json | safe }};
     const commonRequirements = {{ common_json | safe }};
+    const statusOptionalData = {{ status_optional_json | safe }};
+    const scenarioOptionalData = {{ scenario_optional_json | safe }};
 
     const statusSelect = document.getElementById('status');
     const scenarioSelect = document.getElementById('scenario');
     const scholarshipSelect = document.getElementById('scholarship');
     const showButton = document.getElementById('show');
     const results = document.getElementById('results');
+    const optionsContainer = document.getElementById('options');
 
     function populateStatuses() {
       Object.keys(statusData).forEach((status) => {
@@ -111,6 +152,59 @@ INDEX_HTML = """
       });
     }
 
+    function renderOptions() {
+      optionsContainer.innerHTML = '';
+      const status = statusSelect.value;
+      if (!status) return;
+
+      const optionItems = [];
+      if (statusOptionalData[status]) {
+        optionItems.push(...statusOptionalData[status]);
+      }
+
+      const scenarioLabel = scenarioSelect.value;
+      if (
+        scenarioLabel &&
+        scenarioOptionalData[status] &&
+        scenarioOptionalData[status][scenarioLabel]
+      ) {
+        optionItems.push(...scenarioOptionalData[status][scenarioLabel]);
+      }
+
+      if (!optionItems.length) return;
+
+      const wrapper = document.createElement('div');
+      const description = document.createElement('div');
+      description.textContent = '該当する場合はチェックを入れてください';
+      description.style.fontWeight = '600';
+      description.style.marginBottom = '0.35rem';
+      wrapper.appendChild(description);
+
+      optionItems.forEach((item, idx) => {
+        const label = document.createElement('label');
+        label.style.fontWeight = '500';
+        label.style.display = 'flex';
+        label.style.alignItems = 'center';
+        label.style.gap = '0.4rem';
+        label.style.marginBottom = '0.25rem';
+
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.id = `option-${idx}`;
+        checkbox.dataset.requirements = JSON.stringify(item.requirements || []);
+        checkbox.addEventListener('change', showRequirements);
+
+        const text = document.createElement('span');
+        text.textContent = item.label;
+
+        label.appendChild(checkbox);
+        label.appendChild(text);
+        wrapper.appendChild(label);
+      });
+
+      optionsContainer.appendChild(wrapper);
+    }
+
     function refreshScenarios() {
       const status = statusSelect.value;
       scenarioSelect.innerHTML = '';
@@ -121,6 +215,7 @@ INDEX_HTML = """
         scenarioSelect.appendChild(option);
         scenarioSelect.disabled = true;
         showButton.disabled = true;
+        renderOptions();
         return;
       }
 
@@ -131,7 +226,9 @@ INDEX_HTML = """
         scenarioSelect.appendChild(option);
       });
       scenarioSelect.disabled = false;
+      scenarioSelect.selectedIndex = 0;
       showButton.disabled = !scenarioSelect.value;
+      renderOptions();
     }
 
     function renderRequirements(requirements) {
@@ -152,6 +249,19 @@ INDEX_HTML = """
       results.appendChild(list);
     }
 
+    function getSelectedOptionalRequirements() {
+      const checkboxes = optionsContainer.querySelectorAll(
+        'input[type="checkbox"]:checked'
+      );
+      return Array.from(checkboxes).flatMap((checkbox) => {
+        try {
+          return JSON.parse(checkbox.dataset.requirements || '[]');
+        } catch (err) {
+          return [];
+        }
+      });
+    }
+
     function showRequirements() {
       const status = statusSelect.value;
       const scenarioLabel = scenarioSelect.value;
@@ -162,9 +272,11 @@ INDEX_HTML = """
       }
 
       const scenario = statusData[status].find((item) => item.label === scenarioLabel);
+      const optionalRequirements = getSelectedOptionalRequirements();
       const requirements = [
         ...commonRequirements,
         ...(scenario ? scenario.requirements : []),
+        ...optionalRequirements,
         ...(scholarship ? (scholarshipData[scholarship] || []) : []),
       ];
       renderRequirements(requirements);
@@ -177,6 +289,7 @@ INDEX_HTML = """
 
     scenarioSelect.addEventListener('change', () => {
       showButton.disabled = !scenarioSelect.value;
+      renderOptions();
     });
 
     scholarshipSelect.addEventListener('change', showRequirements);
