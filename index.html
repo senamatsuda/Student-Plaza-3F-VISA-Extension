@@ -31,9 +31,8 @@
       <option value="">選択してください</option>
     </select>
 
-    <label for="scenario">状況</label>
-    <select id="scenario" disabled>
-      <option value="">身分を先に選んでください</option>
+    <label for="scenario">状況（複数選択可）</label>
+    <select id="scenario" multiple disabled size="6">
     </select>
 
     <div id="alternate-scenario-group" class="hidden">
@@ -275,6 +274,10 @@
       });
     }
 
+    function getSelectedScenarios() {
+      return Array.from(scenarioSelect.selectedOptions).map((opt) => opt.value);
+    }
+
     function renderOptions() {
       optionsContainer.innerHTML = '';
       const status = statusSelect.value;
@@ -285,14 +288,15 @@
         optionItems.push(...STATUS_OPTIONAL_DATA[status]);
       }
 
-      const scenarioLabel = scenarioSelect.value;
-      if (
-        scenarioLabel &&
-        SCENARIO_OPTIONAL_DATA[status] &&
-        SCENARIO_OPTIONAL_DATA[status][scenarioLabel]
-      ) {
-        optionItems.push(...SCENARIO_OPTIONAL_DATA[status][scenarioLabel]);
-      }
+      const scenarioLabels = getSelectedScenarios();
+      scenarioLabels.forEach((scenarioLabel) => {
+        if (
+          SCENARIO_OPTIONAL_DATA[status] &&
+          SCENARIO_OPTIONAL_DATA[status][scenarioLabel]
+        ) {
+          optionItems.push(...SCENARIO_OPTIONAL_DATA[status][scenarioLabel]);
+        }
+      });
 
       if (!optionItems.length) return;
 
@@ -376,6 +380,7 @@
         const option = document.createElement('option');
         option.value = '';
         option.textContent = '身分を先に選んでください';
+        option.disabled = true;
         scenarioSelect.appendChild(option);
         scenarioSelect.disabled = true;
         showButton.disabled = true;
@@ -390,9 +395,9 @@
         option.textContent = scenario.label;
         scenarioSelect.appendChild(option);
       });
+
       scenarioSelect.disabled = false;
-      scenarioSelect.selectedIndex = 0;
-      showButton.disabled = !scenarioSelect.value;
+      showButton.disabled = !getSelectedScenarios().length;
       renderOptions();
       refreshAlternateScenarios();
     }
@@ -435,26 +440,32 @@
 
     function showRequirements() {
       const status = statusSelect.value;
-      const scenarioLabel = scenarioSelect.value;
+      const selectedScenarios = getSelectedScenarios();
       const scholarship = scholarshipSelect.value;
       const scholarshipStatus = NON_GOV_SCHOLARSHIPS.includes(scholarship)
         ? scholarshipStatusSelect.value
         : '';
-      if (!status || !scenarioLabel) {
+      if (!status || !selectedScenarios.length) {
         renderRequirements([], scholarshipStatus);
         return;
       }
 
-      const scenario = STATUS_DATA[status].find((item) => item.label === scenarioLabel);
       const optionalRequirements = getSelectedOptionalRequirements();
-      const requirements = [
+      const scenarioRequirements = selectedScenarios.flatMap((label) => {
+        const scenario = STATUS_DATA[status].find((item) => item.label === label);
+        return scenario ? scenario.requirements : [];
+      });
+
+      const combined = [
         ...COMMON_REQUIREMENTS,
-        ...(scenario ? scenario.requirements : []),
+        ...scenarioRequirements,
         ...optionalRequirements,
         ...(scholarship ? SCHOLARSHIP_DATA[scholarship] || [] : []),
         ...(scholarshipStatus ? SCHOLARSHIP_STATUS_DATA[scholarshipStatus] || [] : []),
       ];
-      renderRequirements(requirements, scholarshipStatus);
+
+      const uniqueRequirements = Array.from(new Set(combined));
+      renderRequirements(uniqueRequirements, scholarshipStatus);
     }
 
     statusSelect.addEventListener('change', () => {
@@ -463,7 +474,7 @@
     });
 
     scenarioSelect.addEventListener('change', () => {
-      showButton.disabled = !scenarioSelect.value;
+      showButton.disabled = !getSelectedScenarios().length;
       renderOptions();
       refreshAlternateScenarios();
     });
