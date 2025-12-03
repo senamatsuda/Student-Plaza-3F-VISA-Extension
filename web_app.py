@@ -268,6 +268,7 @@ INDEX_HTML = """
 
       updateShowButtonState();
       renderOptions();
+      showRequirements();
     }
 
     function renderScenarios() {
