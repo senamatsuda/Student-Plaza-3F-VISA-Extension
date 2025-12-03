@@ -37,13 +37,6 @@
 
     <div id="options" class="options"></div>
 
-    <div id="alternate-scenario-group" class="hidden">
-      <label for="alternate-scenario">他の状況をすぐに確認する</label>
-      <select id="alternate-scenario" disabled>
-        <option value="">別の状況を選んでください</option>
-      </select>>
-    </div>
-
     <label for="scholarship">奨学金区分（任意）<span class="badge">任意</span></label>
     <select id="scholarship">
       <option value="">選択なし</option>
@@ -238,8 +231,6 @@
 
     const statusSelect = document.getElementById('status');
     const scenarioSelect = document.getElementById('scenario');
-    const alternateScenarioGroup = document.getElementById('alternate-scenario-group');
-    const alternateScenarioSelect = document.getElementById('alternate-scenario');
     const scholarshipSelect = document.getElementById('scholarship');
     const scholarshipStatusGroup = document.getElementById('scholarship-status-group');
     const scholarshipStatusSelect = document.getElementById('scholarship-status');
@@ -326,53 +317,6 @@
       optionsContainer.appendChild(wrapper);
     }
 
-    function refreshAlternateScenarios() {
-      const status = statusSelect.value;
-      const currentScenario = scenarioSelect.value;
-      alternateScenarioSelect.innerHTML = '';
-
-      if (!status || !currentScenario) {
-        alternateScenarioGroup.classList.add('hidden');
-        alternateScenarioSelect.disabled = true;
-        const option = document.createElement('option');
-        option.value = '';
-        option.textContent = '別の状況を選んでください';
-        alternateScenarioSelect.appendChild(option);
-        return;
-      }
-
-      const remainingScenarios = STATUS_DATA[status].filter(
-        (item) => item.label !== currentScenario,
-      );
-
-      if (!remainingScenarios.length) {
-        alternateScenarioGroup.classList.add('hidden');
-        alternateScenarioSelect.disabled = true;
-        const option = document.createElement('option');
-        option.value = '';
-        option.textContent = '他に選べる状況はありません';
-        alternateScenarioSelect.appendChild(option);
-        return;
-      }
-
-      alternateScenarioGroup.classList.remove('hidden');
-      alternateScenarioSelect.disabled = false;
-
-      const placeholder = document.createElement('option');
-      placeholder.value = '';
-      placeholder.textContent = '別の状況を選んでください';
-      alternateScenarioSelect.appendChild(placeholder);
-
-      remainingScenarios.forEach((scenario) => {
-        const option = document.createElement('option');
-        option.value = scenario.label;
-        option.textContent = scenario.label;
-        alternateScenarioSelect.appendChild(option);
-      });
-
-      alternateScenarioSelect.value = '';
-    }
-
     function refreshScenarios() {
       const status = statusSelect.value;
       scenarioSelect.innerHTML = '';
@@ -385,7 +329,6 @@
         scenarioSelect.disabled = true;
         showButton.disabled = true;
         renderOptions();
-        refreshAlternateScenarios();
         return;
       }
 
@@ -399,7 +342,6 @@
       scenarioSelect.disabled = false;
       showButton.disabled = !getSelectedScenarios().length;
       renderOptions();
-      refreshAlternateScenarios();
     }
 
     function renderRequirements(requirements, scholarshipStatus) {
@@ -476,15 +418,6 @@
     scenarioSelect.addEventListener('change', () => {
       showButton.disabled = !getSelectedScenarios().length;
       renderOptions();
-      refreshAlternateScenarios();
-    });
-
-    alternateScenarioSelect.addEventListener('change', () => {
-      const value = alternateScenarioSelect.value;
-      if (!value) return;
-      scenarioSelect.value = value;
-      scenarioSelect.dispatchEvent(new Event('change'));
-      showRequirements();
     });
 
     scholarshipSelect.addEventListener('change', showRequirements);
