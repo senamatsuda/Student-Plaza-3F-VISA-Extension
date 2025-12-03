@@ -94,6 +94,8 @@ INDEX_HTML = """
     select { width: 100%; padding: 0.5rem; font-size: 1rem; border-radius: 6px; border: 1px solid #ccc; }
     button { margin-top: 1rem; padding: 0.65rem 1rem; font-size: 1rem; border-radius: 8px; border: 0; background: #0069d9; color: #fff; cursor: pointer; }
     button:disabled { background: #9ab9e8; cursor: not-allowed; }
+    .scenario-pill { background: #f4f7fb; border: 1px solid #d5e1f3; border-radius: 999px; padding: 0.35rem 0.75rem; cursor: pointer; margin-top: 0; }
+    .scenario-pill.selected { background: #dbe7ff; border-color: #7da3f9; }
     ul { padding-left: 1.2rem; }
     .muted { color: #555; }
     .hidden { display: none; }
@@ -110,9 +112,7 @@ INDEX_HTML = """
     </select>
 
     <label for=\"scenario\">状況</label>
-    <select id=\"scenario\" disabled>
-      <option value=\"\">身分を先に選んでください</option>
-    </select>
+    <div id=\"scenario-list\" aria-label=\"状況\" style=\"display: flex; flex-wrap: wrap; gap: 0.5rem;\"></div>
 
     <div id=\"options\" style=\"margin-top: 0.6rem;\"></div>
 
@@ -146,7 +146,7 @@ INDEX_HTML = """
     ];
 
     const statusSelect = document.getElementById('status');
-    const scenarioSelect = document.getElementById('scenario');
+    const scenarioList = document.getElementById('scenario-list');
     const scholarshipSelect = document.getElementById('scholarship');
     const scholarshipStatusGroup = document.getElementById('scholarship-status-group');
     const scholarshipStatusSelect = document.getElementById('scholarship-status');
@@ -181,6 +181,8 @@ INDEX_HTML = """
       });
     }
 
+    let selectedScenarios = new Set();
+
     function renderOptions() {
       optionsContainer.innerHTML = '';
       const status = statusSelect.value;
@@ -191,16 +193,23 @@ INDEX_HTML = """
         optionItems.push(...statusOptionalData[status]);
       }
 
-      const scenarioLabel = scenarioSelect.value;
-      if (
-        scenarioLabel &&
-        scenarioOptionalData[status] &&
-        scenarioOptionalData[status][scenarioLabel]
-      ) {
-        optionItems.push(...scenarioOptionalData[status][scenarioLabel]);
-      }
+      const scenarioOptions = scenarioOptionalData[status] || {};
+      selectedScenarios.forEach((scenarioLabel) => {
+        if (scenarioOptions[scenarioLabel]) {
+          optionItems.push(...scenarioOptions[scenarioLabel]);
+        }
+      });
 
-      if (!optionItems.length) return;
+      const uniqueItems = new Map();
+      optionItems.forEach((item) => {
+        if (!uniqueItems.has(item.label)) {
+          uniqueItems.set(item.label, item);
+        }
+      });
+
+      const dedupedItems = Array.from(uniqueItems.values());
+
+      if (!dedupedItems.length) return;
 
       const wrapper = document.createElement('div');
       const description = document.createElement('div');
@@ -209,7 +218,7 @@ INDEX_HTML = """
       description.style.marginBottom = '0.35rem';
       wrapper.appendChild(description);
 
-      optionItems.forEach((item, idx) => {
+      dedupedItems.forEach((item, idx) => {
         const label = document.createElement('label');
         label.style.fontWeight = '500';
         label.style.display = 'flex';
@@ -234,30 +243,59 @@ INDEX_HTML = """
       optionsContainer.appendChild(wrapper);
     }
 
-    function refreshScenarios() {
+    function resetScenarioSelection() {
+      selectedScenarios = new Set();
+    }
+
+    function updateShowButtonState() {
+      showButton.disabled = !statusSelect.value || selectedScenarios.size === 0;
+    }
+
+    function toggleScenarioSelection(label, button, event) {
+      if (event && event.detail > 1) {
+        return;
+      }
+
+      if (selectedScenarios.has(label)) {
+        selectedScenarios.delete(label);
+        button.classList.remove('selected');
+        button.setAttribute('aria-pressed', 'false');
+      } else {
+        selectedScenarios.add(label);
+        button.classList.add('selected');
+        button.setAttribute('aria-pressed', 'true');
+      }
+
+      updateShowButtonState();
+      renderOptions();
+    }
+
+    function renderScenarios() {
       const status = statusSelect.value;
-      scenarioSelect.innerHTML = '';
+      scenarioList.innerHTML = '';
+      resetScenarioSelection();
+      updateShowButtonState();
+      renderOptions();
+
       if (!status) {
-        const option = document.createElement('option');
-        option.value = '';
-        option.textContent = '身分を先に選んでください';
-        scenarioSelect.appendChild(option);
-        scenarioSelect.disabled = true;
-        showButton.disabled = true;
-        renderOptions();
+        const placeholder = document.createElement('span');
+        placeholder.textContent = '身分を先に選んでください';
+        placeholder.classList.add('muted');
+        scenarioList.appendChild(placeholder);
         return;
       }
 
       statusData[status].forEach((scenario) => {
-        const option = document.createElement('option');
-        option.value = scenario.label;
-        option.textContent = scenario.label;
-        scenarioSelect.appendChild(option);
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.textContent = scenario.label;
+        button.className = 'scenario-pill';
+        button.setAttribute('aria-pressed', 'false');
+        button.addEventListener('click', (event) =>
+          toggleScenarioSelection(scenario.label, button, event)
+        );
+        scenarioList.appendChild(button);
       });
-      scenarioSelect.disabled = false;
-      scenarioSelect.selectedIndex = 0;
-      showButton.disabled = !scenarioSelect.value;
-      renderOptions();
     }
 
     function renderRequirements(requirements) {
@@ -293,21 +331,26 @@ INDEX_HTML = """
 
     function showRequirements() {
       const status = statusSelect.value;
-      const scenarioLabel = scenarioSelect.value;
       const scholarship = scholarshipSelect.value;
       const scholarshipStatus = nonGovScholarships.includes(scholarship)
         ? scholarshipStatusSelect.value
         : '';
-      if (!status || !scenarioLabel) {
+      if (!status || selectedScenarios.size === 0) {
         renderRequirements([]);
         return;
       }
 
-      const scenario = statusData[status].find((item) => item.label === scenarioLabel);
+      const scenarios = statusData[status] || [];
+      const scenarioRequirements = Array.from(selectedScenarios).flatMap(
+        (label) => {
+          const scenario = scenarios.find((item) => item.label === label);
+          return scenario ? scenario.requirements : [];
+        }
+      );
       const optionalRequirements = getSelectedOptionalRequirements();
       const requirements = [
         ...commonRequirements,
-        ...(scenario ? scenario.requirements : []),
+        ...scenarioRequirements,
         ...optionalRequirements,
         ...(scholarship ? (scholarshipData[scholarship] || []) : []),
         ...(scholarshipStatus
@@ -318,13 +361,8 @@ INDEX_HTML = """
     }
 
     statusSelect.addEventListener('change', () => {
-      refreshScenarios();
+      renderScenarios();
       showRequirements();
-    });
-
-    scenarioSelect.addEventListener('change', () => {
-      showButton.disabled = !scenarioSelect.value;
-      renderOptions();
     });
 
     scholarshipSelect.addEventListener('change', showRequirements);
@@ -352,6 +390,7 @@ INDEX_HTML = """
     populateStatuses();
     populateScholarships();
     populateScholarshipStatuses();
+    renderScenarios();
   </script>
 </body>
 </html>
