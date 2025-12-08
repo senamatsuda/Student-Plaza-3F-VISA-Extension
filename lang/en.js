@@ -31,7 +31,7 @@ window.TRANSLATIONS_EN = {
   "前学期、3+1特別聴講生(C)として在籍（9月で在留期限が切れる場合）": "Was a 3+1 special auditing student (C) last semester (if the visa expires in September)",
   "前学期、正規生として在籍": "Enrolled as a regular student last semester",
   "前学期、本学の特別聴講生として在籍": "Enrolled as a special auditing student at Hiroshima University last semester",
-  "標準修業年限を超えて研究する": "Research period exceeds the standard tie frame for completion",
+  "標準修業年限を超えて研究する": "Research period exceeds the standard time frame for completion",
   "これから進学予定": "Going to continue study at a higher level",
   "1年以上研究生を続けている": "Continue to be a research student for more than one year",
   "大学院進学予定": "Going to continue study at graduate school",
