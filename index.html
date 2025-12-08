@@ -15,6 +15,22 @@
     button:disabled { background: #9ab9e8; cursor: not-allowed; box-shadow: none; }
     ul { padding-left: 1.1rem; }
     .muted { color: #555; }
+    fieldset { border: 0; padding: 0; margin: 0; }
+    .scenario-fieldset legend { font-weight: 600; margin-bottom: 0.35rem; font-size: 1rem; }
+    .scenario-fieldset .helper { margin-top: 0; }
+    .scenario-options { display: flex; flex-direction: column; gap: 0.4rem; }
+    .scenario-option { border: 1px solid #d6d6d6; border-radius: 10px; padding: 0.55rem 0.65rem; display: flex; gap: 0.55rem; align-items: flex-start; background: #f8fafc; cursor: pointer; transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease; }
+    .scenario-option.selected { border-color: #0069d9; background: #e7f0ff; box-shadow: 0 6px 18px rgba(0, 105, 217, 0.08); }
+    .scenario-option input { margin-top: 0.2rem; }
+    .scenario-option:hover { border-color: #9ab9e8; background: #f0f4ff; box-shadow: 0 6px 14px rgba(0, 0, 0, 0.04); }
+    .selection-summary { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; margin-top: 0.35rem; }
+    .chips { display: flex; gap: 0.35rem; flex-wrap: wrap; }
+    .chip { background: #eef2ff; border: 1px solid #d6defa; border-radius: 999px; padding: 0.22rem 0.6rem; display: inline-flex; gap: 0.35rem; align-items: center; }
+    .chip-remove { border: none; background: none; cursor: pointer; font-size: 0.9rem; line-height: 1; color: #555; padding: 0; margin: 0; }
+    .chip-remove:hover { color: #000; }
+    .clear-selection { border: none; background: none; color: #0069d9; cursor: pointer; font-size: 0.9rem; padding: 0; margin-top: 0; border-radius: 0; box-shadow: none; }
+    .clear-selection:hover { text-decoration: underline; }
+    .helper { font-size: 0.95rem; }
     .hint { font-size: 0.95rem; margin-top: 0.6rem; color: #333; }
     .hidden { display: none; }
     .options h3 { font-size: 1rem; margin: 0 0 0.35rem; }
@@ -47,9 +63,17 @@
       <option value="">選択してください</option>
     </select>
 
-    <label for="scenario">状況（複数選択可）</label>
-    <select id="scenario" multiple disabled size="6">
-    </select>
+    <fieldset class="scenario-fieldset" aria-labelledby="scenario-label">
+      <legend id="scenario-label">状況（複数選択可）</legend>
+      <p id="scenario-helper" class="muted helper">チェックボックスで状況を選択してください（複数選択できます）</p>
+      <div id="scenario-placeholder" class="muted">身分を先に選んでください</div>
+      <div id="scenario-options" class="scenario-options"></div>
+      <div id="scenario-selection" class="selection-summary hidden">
+        <span class="muted" id="scenario-selection-label">選択中</span>
+        <div id="scenario-chips" class="chips"></div>
+        <button type="button" id="clear-scenarios" class="clear-selection">すべて解除</button>
+      </div>
+    </fieldset>
 
     <div id="options" class="options"></div>
 
@@ -256,7 +280,12 @@
     let currentLang = 'ja';
 
     const statusSelect = document.getElementById('status');
-    const scenarioSelect = document.getElementById('scenario');
+    const scenarioOptionsContainer = document.getElementById('scenario-options');
+    const scenarioPlaceholder = document.getElementById('scenario-placeholder');
+    const scenarioSelection = document.getElementById('scenario-selection');
+    const scenarioSelectionLabel = document.getElementById('scenario-selection-label');
+    const scenarioChips = document.getElementById('scenario-chips');
+    const clearScenariosButton = document.getElementById('clear-scenarios');
     const scholarshipSelect = document.getElementById('scholarship');
     const scholarshipStatusGroup = document.getElementById('scholarship-status-group');
     const scholarshipStatusSelect = document.getElementById('scholarship-status');
@@ -268,10 +297,11 @@
     const templateLinkAnchor = document.getElementById('template-link-anchor');
     const description = document.querySelector('.description');
     const statusLabel = document.querySelector('label[for="status"]');
-    const scenarioLabel = document.querySelector('label[for="scenario"]');
+    const scenarioLabel = document.getElementById('scenario-label');
     const scholarshipLabel = document.querySelector('label[for="scholarship"]');
     const scholarshipStatusLabel = document.querySelector('label[for="scholarship-status"]');
     const hint = document.querySelector('.hint');
+    const scenarioHelper = document.getElementById('scenario-helper');
     const languageButton = document.getElementById('language-button');
     const languageMenu = document.getElementById('language-menu');
 
@@ -371,7 +401,49 @@
     }
 
     function getSelectedScenarios() {
-      return Array.from(scenarioSelect.selectedOptions).map((opt) => opt.value);
+      return Array.from(
+        scenarioOptionsContainer.querySelectorAll('input[type="checkbox"]:checked')
+      ).map((checkbox) => checkbox.value);
+    }
+
+    function renderScenarioSelection() {
+      const selected = getSelectedScenarios();
+      scenarioSelection.classList.toggle('hidden', !selected.length);
+      scenarioChips.innerHTML = '';
+
+      selected.forEach((value) => {
+        const chip = document.createElement('span');
+        chip.className = 'chip';
+        chip.textContent = t(value);
+
+        const removeBtn = document.createElement('button');
+        removeBtn.type = 'button';
+        removeBtn.className = 'chip-remove';
+        removeBtn.setAttribute('aria-label', `${t('この状況を外す')}: ${t(value)}`);
+        removeBtn.title = t('この状況を外す');
+        removeBtn.textContent = '×';
+        removeBtn.addEventListener('click', () => {
+          const checkbox = Array.from(
+            scenarioOptionsContainer.querySelectorAll('input[type="checkbox"]')
+          ).find((input) => input.value === value);
+          if (checkbox) {
+            checkbox.checked = false;
+            const wrapper = checkbox.closest('.scenario-option');
+            if (wrapper) wrapper.classList.remove('selected');
+            handleScenarioChange();
+          }
+        });
+
+        chip.appendChild(removeBtn);
+        scenarioChips.appendChild(chip);
+      });
+    }
+
+    function handleScenarioChange() {
+      showButton.disabled = !getSelectedScenarios().length;
+      renderOptions();
+      renderScenarioSelection();
+      showRequirements();
     }
 
     function renderOptions() {
@@ -425,30 +497,42 @@
     function refreshScenarios(preserveSelection = true) {
       const status = statusSelect.value;
       const selectedValues = preserveSelection ? getSelectedScenarios() : [];
-      scenarioSelect.innerHTML = '';
+      scenarioOptionsContainer.innerHTML = '';
+      scenarioPlaceholder.classList.add('hidden');
       if (!status) {
-        const option = document.createElement('option');
-        option.value = '';
-        option.textContent = t('身分を先に選んでください');
-        option.disabled = true;
-        scenarioSelect.appendChild(option);
-        scenarioSelect.disabled = true;
+        scenarioPlaceholder.textContent = t('身分を先に選んでください');
+        scenarioPlaceholder.classList.remove('hidden');
         showButton.disabled = true;
         renderOptions();
+        renderScenarioSelection();
         return;
       }
 
-      STATUS_DATA[status].forEach((scenario) => {
-        const option = document.createElement('option');
-        option.value = scenario.label;
-        option.textContent = t(scenario.label);
-        if (selectedValues.includes(option.value)) option.selected = true;
-        scenarioSelect.appendChild(option);
+      STATUS_DATA[status].forEach((scenario, idx) => {
+        const label = document.createElement('label');
+        label.className = 'scenario-option';
+        label.htmlFor = `scenario-${idx}`;
+
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.id = `scenario-${idx}`;
+        checkbox.value = scenario.label;
+        checkbox.checked = selectedValues.includes(scenario.label);
+        if (checkbox.checked) label.classList.add('selected');
+        checkbox.addEventListener('change', () => {
+          label.classList.toggle('selected', checkbox.checked);
+          handleScenarioChange();
+        });
+
+        const text = document.createElement('span');
+        text.textContent = t(scenario.label);
+
+        label.appendChild(checkbox);
+        label.appendChild(text);
+        scenarioOptionsContainer.appendChild(label);
       });
 
-      scenarioSelect.disabled = false;
-      showButton.disabled = !getSelectedScenarios().length;
-      renderOptions();
+      handleScenarioChange();
     }
 
     function renderRequirements(requirements, scholarshipStatus) {
@@ -522,10 +606,15 @@
       showRequirements();
     });
 
-    scenarioSelect.addEventListener('change', () => {
-      showButton.disabled = !getSelectedScenarios().length;
-      renderOptions();
-      showRequirements();
+    clearScenariosButton.addEventListener('click', () => {
+      scenarioOptionsContainer
+        .querySelectorAll('input[type="checkbox"]')
+        .forEach((checkbox) => {
+          checkbox.checked = false;
+          const wrapper = checkbox.closest('.scenario-option');
+          if (wrapper) wrapper.classList.remove('selected');
+        });
+      handleScenarioChange();
     });
 
     scholarshipSelect.addEventListener('change', () => {
@@ -558,6 +647,10 @@
       description.innerHTML = `${t('身分・状況・奨学金区分を選ぶと、提出が必要な書類が表示されます。')}<br>${t('該当する追加条件があればチェックしてください。')}`;
       statusLabel.textContent = t('身分');
       scenarioLabel.textContent = t('状況（複数選択可）');
+      scenarioHelper.textContent = t('チェックボックスで状況を選択してください（複数選択できます）');
+      scenarioSelectionLabel.textContent = t('選択中');
+      clearScenariosButton.textContent = t('すべて解除');
+      scenarioPlaceholder.textContent = t('身分を先に選んでください');
       scholarshipLabel.textContent = t('奨学金区分（任意）');
       scholarshipStatusLabel.innerHTML = `${t('奨学金の状況（任意）')}<span class="badge">${t('任意')}</span>`;
       hint.textContent = t('「日本政府以外の奨学金受給学生」を選んだ場合のみ、奨学金の状況に応じた必要書類が表示されます。');
