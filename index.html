@@ -38,7 +38,8 @@
   </div>
   <div class="card">
     <h1>在留期間更新に必要な書類</h1>
-    <p class="muted" id="template-link"><a id="template-link-anchor" href="https://momiji.hiroshima-u.ac.jp/momiji-top/international/zairyukikan.html" target="_blank" rel="noopener noreferrer">各種テンプレートは以下のリンクから入手してください。</a></p>
+    <p class="muted" id="template-link-text">各種テンプレートは以下のリンクから入手してください。</p>
+    <p class="muted"><a id="template-link-anchor" href="https://momiji.hiroshima-u.ac.jp/momiji-top/international/zairyukikan.html" target="_blank" rel="noopener noreferrer">https://momiji.hiroshima-u.ac.jp/momiji-top/international/zairyukikan.html</a></p>
     <p class="muted description">身分・状況・奨学金区分を選ぶと、提出が必要な書類が表示されます。<br>該当する追加条件があればチェックしてください。</p>
 
     <label for="status">身分</label>
@@ -263,6 +264,7 @@
     const results = document.getElementById('results');
     const optionsContainer = document.getElementById('options');
     const heading = document.querySelector('h1');
+    const templateLinkText = document.getElementById('template-link-text');
     const templateLinkAnchor = document.getElementById('template-link-anchor');
     const description = document.querySelector('.description');
     const statusLabel = document.querySelector('label[for="status"]');
@@ -551,7 +553,8 @@
     function applyLanguage() {
       document.title = t('在留期間更新 必要書類ナビ');
       heading.textContent = t('在留期間更新に必要な書類');
-      templateLinkAnchor.textContent = t('各種テンプレートは以下のリンクから入手してください。');
+      templateLinkText.textContent = t('各種テンプレートは以下のリンクから入手してください。');
+      templateLinkAnchor.textContent = templateLinkAnchor.href;
       description.innerHTML = `${t('身分・状況・奨学金区分を選ぶと、提出が必要な書類が表示されます。')}<br>${t('該当する追加条件があればチェックしてください。')}`;
       statusLabel.textContent = t('身分');
       scenarioLabel.textContent = t('状況（複数選択可）');
