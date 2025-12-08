@@ -1,6 +1,7 @@
 window.TRANSLATIONS_EN = {
   "在留期間更新 必要書類ナビ": "Visa Extension Necessary Document Guide",
   "在留期間更新に必要な書類": "Documents Needed for Visa Extension",
+  "各種テンプレートは以下のリンクから入手してください。": "Download the templates from the link below.",
   "身分・状況・奨学金区分を選ぶと、提出が必要な書類が表示されます。": "Select your status, situation, and scholarship category to see the required documents.",
   "該当する追加条件があればチェックしてください。": "Check any additional conditions that apply.",
   "身分": "Status",
