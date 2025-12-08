@@ -418,6 +418,7 @@
     scenarioSelect.addEventListener('change', () => {
       showButton.disabled = !getSelectedScenarios().length;
       renderOptions();
+      showRequirements();
     });
 
     scholarshipSelect.addEventListener('change', showRequirements);
