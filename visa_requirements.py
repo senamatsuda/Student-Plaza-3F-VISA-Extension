@@ -17,6 +17,13 @@ COMMON_REQUIREMENTS: List[str] = [
     "6,000円分の収入印紙",
 ]
 
+# 「これから進学予定」選択時に表示する注意文言
+ADVANCEMENT_NOTICE: str = (
+    "注意:これから進学予定の場合、所属機関等作成用の2枚はこれから入学する予定の支援室に発行してもらう必要があります。"
+    "\nそのため、入学手続き期間内に入学料を納めてから、支援室に発行を依頼してください。"
+)
+ADVANCEMENT_OPTION_LABEL = "これから進学予定"
+
 
 @dataclass
 class Scenario:
@@ -129,7 +136,7 @@ STATUS_OPTIONAL_RULES: Dict[str, List[Scenario]] = {
         Scenario(label="標準修業年限を超えて研究する", requirements=[
             "理由書(延長期間・理由を指導教員に記入してもらい、提出)(用紙は所属の支援室・留学交流グループにあります)"
             ]),
-        Scenario(label="これから進学予定", requirements=[
+        Scenario(label=ADVANCEMENT_OPTION_LABEL, requirements=[
             "合格通知書(コピー)"
             ]),
     ],

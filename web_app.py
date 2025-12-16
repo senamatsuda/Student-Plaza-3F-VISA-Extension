@@ -9,6 +9,8 @@ from typing import Dict, List
 from flask import Flask, Response, render_template_string
 
 from visa_requirements import (
+    ADVANCEMENT_NOTICE,
+    ADVANCEMENT_OPTION_LABEL,
     COMMON_REQUIREMENTS,
     SCHOLARSHIP_RULES,
     SCHOLARSHIP_STATUS_RULES,
@@ -140,8 +142,17 @@ INDEX_HTML = """
     const commonRequirements = {{ common_json | safe }};
     const statusOptionalData = {{ status_optional_json | safe }};
     const scenarioOptionalData = {{ scenario_optional_json | safe }};
+<<<<<<< ours
     const ADVANCEMENT_NOTICE =
       '注意:これから進学予定の場合、所属機関等作成用の2枚はこれから入学する予定の支援室に発行してもらう必要があります。<br />そのため、入学手続き期間内に入学料を納めてから、支援室に発行を依頼してください。';
+=======
+    const ADVANCEMENT_NOTICE = {{ ADVANCEMENT_NOTICE | tojson }};
+    const ADVANCEMENT_NOTICE_HTML = ADVANCEMENT_NOTICE.replace(
+      /\n/g,
+      '<br />'
+    );
+    const ADVANCEMENT_OPTION_LABEL = {{ ADVANCEMENT_OPTION_LABEL | tojson }};
+>>>>>>> theirs
     const nonGovScholarships = [
       "日本政府以外の給付型の奨学金受給学生",
       "日本政府以外の貸与型の奨学金受給学生",
@@ -367,8 +378,15 @@ INDEX_HTML = """
       );
       const shouldShowAdvancementNotice =
         status === '正規生' &&
+<<<<<<< ours
         optionalSelections.some((selection) => selection.label === 'これから進学予定');
       const noticeText = shouldShowAdvancementNotice ? ADVANCEMENT_NOTICE : '';
+=======
+        optionalSelections.some(
+          (selection) => selection.label === ADVANCEMENT_OPTION_LABEL
+        );
+      const noticeText = shouldShowAdvancementNotice ? ADVANCEMENT_NOTICE_HTML : '';
+>>>>>>> theirs
       const requirements = [
         ...commonRequirements,
         ...scenarioRequirements,
