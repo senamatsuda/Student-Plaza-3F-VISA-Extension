@@ -84,7 +84,7 @@
     </select>
 
     <fieldset class="scenario-fieldset" aria-labelledby="scenario-label">
-      <legend id="scenario-label">状況（複数選択可）[今持っている在留カードに記載されている在留期間内に当てはまるもの全て選択してください]</legend>
+      <legend id="scenario-label">状況（複数選択可）[許可年月日から満了年月日に当てはまるもの全て選択してください]</legend>
       <p id="scenario-helper" class="muted helper">チェックボックスで状況を選択してください（複数選択できます）</p>
       <div id="scenario-placeholder" class="muted">現在の身分を先に選んでください</div>
       <div id="scenario-options" class="scenario-options"></div>
@@ -321,6 +321,8 @@
     const residenceCardLabel = document.getElementById('residence-card-label');
     const permitDateLabel = document.getElementById('permit-date-label');
     const expirationDateLabel = document.getElementById('expiration-date-label');
+    const permitDateInput = document.getElementById('permit-date');
+    const expirationDateInput = document.getElementById('expiration-date');
     const statusLabel = document.querySelector('label[for="status"]');
     const scenarioLabel = document.getElementById('scenario-label');
     const scholarshipLabel = document.querySelector('label[for="scholarship"]');
@@ -664,6 +666,23 @@
     scholarshipStatusSelect.addEventListener('change', showRequirements);
     showButton.addEventListener('click', showRequirements);
 
+    permitDateInput.addEventListener('change', updateScenarioLabel);
+    expirationDateInput.addEventListener('change', updateScenarioLabel);
+
+    function getDateRangeText() {
+      const connectors = { ja: 'から', en: ' to ', zh: ' 至 ' };
+      const permitDate = permitDateInput.value || t('許可年月日');
+      const expirationDate = expirationDateInput.value || t('満了年月日');
+      const connector = connectors[currentLang] || ' to ';
+      return `${permitDate}${connector}${expirationDate}`;
+    }
+
+    function updateScenarioLabel() {
+      const dateRange = getDateRangeText();
+      const template = t('状況（複数選択可）[{dateRange}に当てはまるもの全て選択してください]');
+      scenarioLabel.textContent = template.replace('{dateRange}', dateRange);
+    }
+
     function applyLanguage() {
       document.title = t('在留期間更新 必要書類ナビ');
       heading.textContent = t('在留期間更新に必要な書類');
@@ -674,7 +693,7 @@
       permitDateLabel.textContent = t('許可年月日');
       expirationDateLabel.textContent = t('満了年月日');
       statusLabel.textContent = t('現在の身分');
-      scenarioLabel.textContent = t('状況（複数選択可）[今持っている在留カードに記載されている在留期間内に当てはまるもの全て選択してください]');
+      updateScenarioLabel();
       scenarioHelper.textContent = t('チェックボックスで状況を選択してください（複数選択できます）');
       scenarioSelectionLabel.textContent = t('選択中');
       clearScenariosButton.textContent = t('すべて解除');
