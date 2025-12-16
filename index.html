@@ -279,6 +279,11 @@
       "日本政府以外の貸与型の奨学金受給学生": ["留学生の母国語および日本語で作成された契約書等"],
     };
 
+    const ADVANCEMENT_NOTICE =
+      '注意:これから進学予定の場合、所属機関等作成用の2枚はこれから入学する予定の支援室に発行してもらう必要があります。\nそのため、入学手続き期間内に入学料を納めてから、支援室に発行を依頼してください。';
+    const ADVANCEMENT_NOTICE_HTML = ADVANCEMENT_NOTICE.replace(/\n/g, '<br />');
+    const ADVANCEMENT_NOTICE_LABELS = ['これから進学予定', '大学院進学予定'];
+
     const SCHOLARSHIP_STATUS_DATA = {
       "前回申請以降に新たに奨学金を受給": [
         "奨学金決定通知書（財団等が発行。作成できない場合は大学が発行した証明書）",
@@ -508,6 +513,7 @@
         const checkbox = document.createElement('input');
         checkbox.type = 'checkbox';
         checkbox.id = `option-${idx}`;
+        checkbox.dataset.label = item.label;
         checkbox.dataset.requirements = JSON.stringify(item.requirements || []);
         checkbox.addEventListener('change', showRequirements);
 
@@ -563,8 +569,14 @@
       handleScenarioChange();
     }
 
-    function renderRequirements(requirements, scholarshipStatus) {
+    function renderRequirements(requirements, scholarshipStatus, noticeHtml = '') {
       results.innerHTML = '';
+      if (noticeHtml) {
+        const notice = document.createElement('p');
+        notice.innerHTML = `<strong style="color: #c00;">${noticeHtml}</strong>`;
+        notice.style.marginBottom = '0.5rem';
+        results.appendChild(notice);
+      }
       if (!requirements.length) {
         const empty = document.createElement('p');
         empty.textContent = t('必要な書類はありません。');
@@ -588,14 +600,16 @@
       }
     }
 
-    function getSelectedOptionalRequirements() {
+    function getSelectedOptionalSelections() {
       const checkboxes = optionsContainer.querySelectorAll('input[type="checkbox"]:checked');
-      return Array.from(checkboxes).flatMap((checkbox) => {
+      return Array.from(checkboxes).map((checkbox) => {
+        const selection = { label: checkbox.dataset.label || '', requirements: [] };
         try {
-          return JSON.parse(checkbox.dataset.requirements || '[]');
+          selection.requirements = JSON.parse(checkbox.dataset.requirements || '[]');
         } catch (err) {
-          return [];
+          selection.requirements = [];
         }
+        return selection;
       });
     }
 
@@ -611,7 +625,13 @@
         return;
       }
 
-      const optionalRequirements = getSelectedOptionalRequirements();
+      const optionalSelections = getSelectedOptionalSelections();
+      const optionalRequirements = optionalSelections.flatMap(
+        (selection) => selection.requirements
+      );
+      const shouldShowAdvancementNotice = optionalSelections.some(({ label }) =>
+        ADVANCEMENT_NOTICE_LABELS.includes(label)
+      );
       const scenarioRequirements = selectedScenarios.flatMap((label) => {
         const scenario = STATUS_DATA[status].find((item) => item.label === label);
         return scenario ? scenario.requirements : [];
@@ -626,7 +646,8 @@
       ];
 
       const uniqueRequirements = Array.from(new Set(combined));
-      renderRequirements(uniqueRequirements, scholarshipStatus);
+      const noticeHtml = shouldShowAdvancementNotice ? ADVANCEMENT_NOTICE_HTML : '';
+      renderRequirements(uniqueRequirements, scholarshipStatus, noticeHtml);
     }
 
     statusSelect.addEventListener('change', () => {

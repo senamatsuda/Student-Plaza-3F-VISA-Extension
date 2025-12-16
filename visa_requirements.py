@@ -23,6 +23,7 @@ ADVANCEMENT_NOTICE: str = (
     "\nそのため、入学手続き期間内に入学料を納めてから、支援室に発行を依頼してください。"
 )
 ADVANCEMENT_OPTION_LABEL = "これから進学予定"
+ADVANCEMENT_NOTICE_LABELS = [ADVANCEMENT_OPTION_LABEL, "大学院進学予定"]
 
 
 @dataclass

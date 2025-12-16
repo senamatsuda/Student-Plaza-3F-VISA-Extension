@@ -10,7 +10,7 @@ from flask import Flask, Response, render_template_string
 
 from visa_requirements import (
     ADVANCEMENT_NOTICE,
-    ADVANCEMENT_OPTION_LABEL,
+    ADVANCEMENT_NOTICE_LABELS,
     COMMON_REQUIREMENTS,
     SCHOLARSHIP_RULES,
     SCHOLARSHIP_STATUS_RULES,
@@ -78,7 +78,7 @@ def index() -> Response:
         scholarship_status_json=scholarship_status_json,
         common_json=common_json,
         advancement_notice=ADVANCEMENT_NOTICE,
-        advancement_option_label=ADVANCEMENT_OPTION_LABEL,
+        advancement_notice_labels=ADVANCEMENT_NOTICE_LABELS,
     )
 
 
@@ -149,7 +149,7 @@ INDEX_HTML = """
       /\n/g,
       '<br />'
     );
-    const ADVANCEMENT_OPTION_LABEL = {{ advancement_option_label | tojson }};
+    const ADVANCEMENT_NOTICE_LABELS = {{ advancement_notice_labels | tojson }};
     const nonGovScholarships = [
       "日本政府以外の給付型の奨学金受給学生",
       "日本政府以外の貸与型の奨学金受給学生",
@@ -373,11 +373,9 @@ INDEX_HTML = """
       const optionalRequirements = optionalSelections.flatMap(
         (selection) => selection.requirements
       );
-      const shouldShowAdvancementNotice =
-        status === '正規生' &&
-        optionalSelections.some(
-          (selection) => selection.label === ADVANCEMENT_OPTION_LABEL
-        );
+      const shouldShowAdvancementNotice = optionalSelections.some(
+        (selection) => ADVANCEMENT_NOTICE_LABELS.includes(selection.label)
+      );
       const noticeText = shouldShowAdvancementNotice ? ADVANCEMENT_NOTICE_HTML : '';
       const requirements = [
         ...commonRequirements,
