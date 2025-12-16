@@ -36,6 +36,7 @@
     .hidden { display: none; }
     .options h3 { font-size: 1rem; margin: 0 0 0.35rem; }
     .options label { font-weight: 500; display: flex; gap: 0.45rem; align-items: center; margin-top: 0.35rem; }
+    .date-range-highlight { color: #c00000; font-weight: 700; }
     .toolbar { display: flex; justify-content: flex-end; margin-bottom: 1rem; position: relative; gap: 0.5rem; }
     .language-button { padding: 0.55rem 0.9rem; border-radius: 10px; border: 1px solid #c6c6c6; background: #fff; color: #000; cursor: pointer; font-size: 0.95rem; display: inline-flex; align-items: center; gap: 0.35rem; box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05); }
     .language-menu { position: absolute; top: 110%; right: 0; background: #fff; border: 1px solid #e2e2e2; border-radius: 10px; box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08); padding: 0.35rem; min-width: 160px; z-index: 2; }
@@ -680,7 +681,8 @@
     function updateScenarioLabel() {
       const dateRange = getDateRangeText();
       const template = t('状況（複数選択可）[{dateRange}に当てはまるもの全て選択してください]');
-      scenarioLabel.textContent = template.replace('{dateRange}', dateRange);
+      const dateRangeHtml = `<span class="date-range-highlight">${dateRange}</span>`;
+      scenarioLabel.innerHTML = template.replace('{dateRange}', dateRangeHtml);
     }
 
     function applyLanguage() {
