@@ -108,9 +108,9 @@ INDEX_HTML = """
 <body>
   <div class=\"card\">
     <h1>在留期間更新に必要な書類</h1>
-    <p class=\"muted\">身分・状況・奨学金区分を選ぶと、提出が必要な書類が表示されます。</p>
+    <p class=\"muted\">現在の身分・状況・奨学金区分を選ぶと、提出が必要な書類が表示されます。</p>
 
-    <label for=\"status\">身分</label>
+    <label for=\"status\">現在の身分</label>
     <select id=\"status\">
       <option value=\"\">選択してください</option>
     </select>
@@ -291,7 +291,7 @@ INDEX_HTML = """
 
       if (!status) {
         const placeholder = document.createElement('span');
-        placeholder.textContent = '身分を先に選んでください';
+        placeholder.textContent = '現在の身分を先に選んでください';
         placeholder.classList.add('muted');
         scenarioList.appendChild(placeholder);
         return;

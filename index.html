@@ -56,9 +56,9 @@
     <h1>在留期間更新に必要な書類</h1>
     <p class="muted" id="template-link-text">各種テンプレートは以下のリンクから入手してください。</p>
     <p class="muted"><a id="template-link-anchor" href="https://momiji.hiroshima-u.ac.jp/momiji-top/international/zairyukikan.html" target="_blank" rel="noopener noreferrer">https://momiji.hiroshima-u.ac.jp/momiji-top/international/zairyukikan.html</a></p>
-    <p class="muted description">身分・状況・奨学金区分を選ぶと、提出が必要な書類が表示されます。<br>該当する追加条件があればチェックしてください。</p>
+    <p class="muted description">現在の身分・状況・奨学金区分を選ぶと、提出が必要な書類が表示されます。<br>該当する追加条件があればチェックしてください。</p>
 
-    <label for="status">身分</label>
+    <label for="status">現在の身分</label>
     <select id="status">
       <option value="">選択してください</option>
     </select>
@@ -66,7 +66,7 @@
     <fieldset class="scenario-fieldset" aria-labelledby="scenario-label">
       <legend id="scenario-label">状況（複数選択可）[今持っている在留カードに記載されている在留期間内に当てはまるもの全て選択してください]</legend>
       <p id="scenario-helper" class="muted helper">チェックボックスで状況を選択してください（複数選択できます）</p>
-      <div id="scenario-placeholder" class="muted">身分を先に選んでください</div>
+      <div id="scenario-placeholder" class="muted">現在の身分を先に選んでください</div>
       <div id="scenario-options" class="scenario-options"></div>
       <div id="scenario-selection" class="selection-summary hidden">
         <span class="muted" id="scenario-selection-label">選択中</span>
@@ -109,14 +109,14 @@
     const STATUS_DATA = {
       "正規生": [
         {
-          label: "前学期も同じ身分で正規生として在籍",
+          label: "この期間内に、現在と同じ身分で正規生として在籍していた",
           requirements: [
             "成績証明書（証明書自動発行機で発行）",
             "在学証明書（証明書自動発行機で発行）",
           ],
         },
         {
-          label: "前学期とは異なる身分で正規生として在籍（学部生→修士、修士→博士等）",
+          label: "この期間内に、現在とは異なる身分で正規生として在籍していた（学部生→修士、修士→博士等）",
           requirements: [
             "成績証明書（証明書自動発行機で発行）",
             "在学証明書（証明書自動発行機で発行）",
@@ -124,14 +124,14 @@
           ],
         },
         {
-          label: "前学期、研究生として在籍",
+          label: "この期間内に、研究生として在籍していた",
           requirements: [
             "在学証明書（証明書自動発行機で発行）",
             "外国人研究生証明書(別紙様式５)（旧所属の支援室で発行）",
           ],
         },
         {
-          label: "前学期、日本語学校に在籍",
+          label: "この期間内に、研究生として在籍していた",
           requirements: [
             "在学証明書（証明書自動発行機で発行）",
             "成績・出席証明書（日本語学校が発行）",
@@ -139,7 +139,7 @@
           ],
         },
         {
-          label: "前学期、他大学に在籍",
+          label: "この期間内に、他大学に在籍していた",
           requirements: [
             "在学証明書（証明書自動発行機で発行）",
             "成績証明書（他大学が発行）",
@@ -149,13 +149,13 @@
       ],
       "研究生": [
         {
-          label: "前学期も研究生として在籍",
+          label: "この期間内も研究生として在籍していた",
           requirements: [
             "外国人研究生証明書(別紙様式５)（所属の支援室で発行）",
           ],
         },
         {
-          label: "前学期、日本語学校に在籍",
+          label: "この期間内に、日本語学校に在籍していた",
           requirements: [
             "外国人研究生証明書(別紙様式５)（所属の支援室で発行）",
             "成績・出席証明書（日本語学校が発行）",
@@ -163,7 +163,7 @@
           ],
         },
         {
-          label: "前学期、他大学に在籍",
+          label: "この期間内に、他大学に在籍していた",
           requirements: [
             "外国人研究生証明書(別紙様式５)（所属の支援室で発行）",
             "成績証明書（他大学が発行）",
@@ -171,14 +171,14 @@
           ],
         },
         {
-          label: "前学期、3+1特別聴講生(C)として在籍（9月で在留期限が切れる場合）",
+          label: "この期間内に、3+1特別聴講生(C)として在籍していた（9月で在留期限が切れる場合）",
           requirements: [
             "外国人研究生証明書(別紙様式５)（所属の支援室で発行）",
             "成績証明書（3+1プログラムの成績）",
           ],
         },
         {
-          label: "前学期、正規生として在籍",
+          label: "この期間内に、正規生として在籍していた",
           requirements: [
             "外国人研究生証明書(別紙様式５)（所属の支援室で発行）",
             "成績証明書（旧所属の支援室で発行）",
@@ -188,7 +188,7 @@
       ],
       "特別聴講学生": [
         {
-          label: "前学期、他大学に在籍",
+          label: "この期間内に、他大学に在籍していた",
           requirements: [
             "在学証明書（所属の支援室で発行）",
             "成績証明書（他大学が発行）",
@@ -196,7 +196,7 @@
           ],
         },
         {
-          label: "前学期、本学の特別聴講生として在籍",
+          label: "この期間内に、本学の特別聴講生として在籍していた",
           requirements: [
             "在学証明書（所属の支援室で発行）",
             "成績証明書（所属の支援室で発行）",
@@ -502,7 +502,7 @@
       scenarioOptionsContainer.innerHTML = '';
       scenarioPlaceholder.classList.add('hidden');
       if (!status) {
-        scenarioPlaceholder.textContent = t('身分を先に選んでください');
+        scenarioPlaceholder.textContent = t('現在の身分を先に選んでください');
         scenarioPlaceholder.classList.remove('hidden');
         showButton.disabled = true;
         renderOptions();
@@ -646,13 +646,13 @@
       heading.textContent = t('在留期間更新に必要な書類');
       templateLinkText.textContent = t('各種テンプレートは以下のリンクから入手してください。');
       templateLinkAnchor.textContent = templateLinkAnchor.href;
-      description.innerHTML = `${t('身分・状況・奨学金区分を選ぶと、提出が必要な書類が表示されます。')}<br>${t('該当する追加条件があればチェックしてください。')}`;
-      statusLabel.textContent = t('身分');
+      description.innerHTML = `${t('現在の身分・状況・奨学金区分を選ぶと、提出が必要な書類が表示されます。')}<br>${t('該当する追加条件があればチェックしてください。')}`;
+      statusLabel.textContent = t('現在の身分');
       scenarioLabel.textContent = t('状況（複数選択可）[今持っている在留カードに記載されている在留期間内に当てはまるもの全て選択してください]');
       scenarioHelper.textContent = t('チェックボックスで状況を選択してください（複数選択できます）');
       scenarioSelectionLabel.textContent = t('選択中');
       clearScenariosButton.textContent = t('すべて解除');
-      scenarioPlaceholder.textContent = t('身分を先に選んでください');
+      scenarioPlaceholder.textContent = t('現在の身分を先に選んでください');
       scholarshipLabel.textContent = t('奨学金区分（任意）');
       scholarshipStatusLabel.innerHTML = `${t('奨学金の状況（任意）')}<span class="badge">${t('任意')}</span>`;
       hint.textContent = t('「日本政府以外の奨学金受給学生」を選んだ場合のみ、奨学金の状況に応じた必要書類が表示されます。');
