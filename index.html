@@ -10,7 +10,7 @@
     h1 { font-size: 1.6rem; margin-bottom: 0.2rem; }
     .card { max-width: 1500px; padding: 1.5rem 1.75rem; border: 1px solid #e2e2e2; border-radius: 14px; box-shadow: 0 6px 20px rgba(0, 0, 0, 0.05); background: #fff; }
     label { display: block; font-weight: 600; margin-top: 1rem; margin-bottom: 0.35rem; }
-    select { width: 100%; padding: 0.55rem; font-size: 1rem; border-radius: 8px; border: 1px solid #c6c6c6; background: #fff; }
+    select, input[type="date"] { width: 100%; padding: 0.55rem; font-size: 1rem; border-radius: 8px; border: 1px solid #c6c6c6; background: #fff; }
     button { margin-top: 1.1rem; padding: 0.7rem 1.05rem; font-size: 1rem; border-radius: 10px; border: 0; background: #0069d9; color: #fff; cursor: pointer; box-shadow: 0 3px 10px rgba(0, 105, 217, 0.2); }
     button:disabled { background: #9ab9e8; cursor: not-allowed; box-shadow: none; }
     ul { padding-left: 1.1rem; }
@@ -41,6 +41,8 @@
     .language-menu button { width: 100%; padding: 0.55rem 0.75rem; border: 0; background: transparent; text-align: left; border-radius: 8px; cursor: pointer; font-size: 0.95rem; color: #000; }
     .language-menu button:hover { background: #f0f4ff; }
     .badge { background: #eef2ff; color: #333; padding: 0.15rem 0.45rem; border-radius: 999px; font-size: 0.8rem; margin-left: 0.35rem; }
+    .residence-card-section { margin-top: 1.2rem; padding: 1rem; border: 1px solid #e2e2e2; border-radius: 12px; background: #f8fafc; }
+    .residence-card-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 0.75rem; }
   </style>
 </head>
 <body>
@@ -57,6 +59,20 @@
     <p class="muted" id="template-link-text">各種テンプレートは以下のリンクから入手してください。</p>
     <p class="muted"><a id="template-link-anchor" href="https://momiji.hiroshima-u.ac.jp/momiji-top/international/zairyukikan.html" target="_blank" rel="noopener noreferrer">https://momiji.hiroshima-u.ac.jp/momiji-top/international/zairyukikan.html</a></p>
     <p class="muted description">現在の身分・状況・奨学金区分を選ぶと、提出が必要な書類が表示されます。<br>該当する追加条件があればチェックしてください。</p>
+
+    <div class="residence-card-section">
+      <label id="residence-card-label">在留カードを確認して、入力してください</label>
+      <div class="residence-card-grid">
+        <div>
+          <label for="permit-date" id="permit-date-label">許可年月日</label>
+          <input type="date" id="permit-date" name="permit-date" />
+        </div>
+        <div>
+          <label for="expiration-date" id="expiration-date-label">満了年月日</label>
+          <input type="date" id="expiration-date" name="expiration-date" />
+        </div>
+      </div>
+    </div>
 
     <label for="status">現在の身分</label>
     <select id="status">
@@ -298,6 +314,9 @@
     const templateLinkText = document.getElementById('template-link-text');
     const templateLinkAnchor = document.getElementById('template-link-anchor');
     const description = document.querySelector('.description');
+    const residenceCardLabel = document.getElementById('residence-card-label');
+    const permitDateLabel = document.getElementById('permit-date-label');
+    const expirationDateLabel = document.getElementById('expiration-date-label');
     const statusLabel = document.querySelector('label[for="status"]');
     const scenarioLabel = document.getElementById('scenario-label');
     const scholarshipLabel = document.querySelector('label[for="scholarship"]');
@@ -647,6 +666,9 @@
       templateLinkText.textContent = t('各種テンプレートは以下のリンクから入手してください。');
       templateLinkAnchor.textContent = templateLinkAnchor.href;
       description.innerHTML = `${t('現在の身分・状況・奨学金区分を選ぶと、提出が必要な書類が表示されます。')}<br>${t('該当する追加条件があればチェックしてください。')}`;
+      residenceCardLabel.textContent = t('在留カードを確認して、入力してください');
+      permitDateLabel.textContent = t('許可年月日');
+      expirationDateLabel.textContent = t('満了年月日');
       statusLabel.textContent = t('現在の身分');
       scenarioLabel.textContent = t('状況（複数選択可）[今持っている在留カードに記載されている在留期間内に当てはまるもの全て選択してください]');
       scenarioHelper.textContent = t('チェックボックスで状況を選択してください（複数選択できます）');
