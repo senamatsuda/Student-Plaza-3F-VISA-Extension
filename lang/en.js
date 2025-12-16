@@ -8,7 +8,7 @@ window.TRANSLATIONS_EN = {
   "許可年月日": "Date of permission",
   "満了年月日": "Date of expiration",
   "現在の身分": "Current Status",
-  "状況（複数選択可）[今持っている在留カードに記載されている在留期間内に当てはまるもの全て選択してください]": "Situations (multiple selections allowed) [Choose everything that applies within the period of stay on your current residence card]",
+  "状況（複数選択可）[{dateRange}に当てはまるもの全て選択してください]": "Situations (multiple selections allowed) [Choose everything that applies for {dateRange}]",
   "奨学金区分（任意）": "Scholarship category (optional)",
   "奨学金の状況（任意）": "Scholarship status (optional)",
   "任意": "Optional",
