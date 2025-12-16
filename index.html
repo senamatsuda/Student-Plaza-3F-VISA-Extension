@@ -6,6 +6,7 @@
   <title>在留期間更新 必要書類ナビ</title>
   <style>
     :root { color-scheme: light; }
+    *, *::before, *::after { box-sizing: border-box; }
     body { font-family: system-ui, -apple-system, sans-serif; margin: 2rem; line-height: 1.6; background: #f6f7fb; }
     h1 { font-size: 1.6rem; margin-bottom: 0.2rem; }
     .card { max-width: 1500px; padding: 1.5rem 1.75rem; border: 1px solid #e2e2e2; border-radius: 14px; box-shadow: 0 6px 20px rgba(0, 0, 0, 0.05); background: #fff; }
@@ -42,7 +43,10 @@
     .language-menu button:hover { background: #f0f4ff; }
     .badge { background: #eef2ff; color: #333; padding: 0.15rem 0.45rem; border-radius: 999px; font-size: 0.8rem; margin-left: 0.35rem; }
     .residence-card-section { margin-top: 1.2rem; padding: 1rem; border: 1px solid #e2e2e2; border-radius: 12px; background: #f8fafc; }
-    .residence-card-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 0.75rem; }
+    .residence-card-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1rem; align-items: end; }
+    @media (max-width: 580px) {
+      .residence-card-grid { grid-template-columns: 1fr; }
+    }
   </style>
 </head>
 <body>
