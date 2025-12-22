@@ -55,7 +55,7 @@ window.TRANSLATIONS_EN = {
   "前回申請以降に新たに奨学金を受給": "Started receiving a scholarship after the previous application",
   "前回申請時に奨学金証明書を提出済み": "Submitted a scholarship certificate with the previous application",
   "在留期間更新許可申請書（申請人等作成用の3枚 + 所属機関等作成用の2枚）": "Application for extension of period of stay (3 pages by the applicant + 2 pages by the office that you belong to)",
-  "提出書類一覧表、各種類確認書（両方提出必須）": "List of submitting documents and confirmation sheets of Language proficiency(both required)",
+  "提出書類一覧表、各種確認書（両方提出必須）": "List of submitting documents and confirmation sheets of Language proficiency(both required)",
   "パスポート、在留カード（原本を持参・提示してください）": "Passport and residence card (bring and present originals)",
   "6,000円分の収入印紙": "Revenue stamp worth 6,000 yen",
   "成績証明書（証明書自動発行機で発行）": "Academic transcript (issued by automatic issuing machines)",
