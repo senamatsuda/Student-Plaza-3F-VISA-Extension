@@ -84,5 +84,7 @@ window.TRANSLATIONS_EN = {
   "奨学金証明書（コピー）": "Scholarship certificate (copy)",
   "留学生の母国語および日本語で作成された契約書等": "Contract or similar created in both the student's native language and Japanese",
   "奨学金決定通知書（財団等が発行。作成できない場合は大学が発行した証明書）": "Notice of Scholarship Decision (issued by foundation, etc.; if unavailable, submit a certificate issued by the university)",
-  "通帳の写し（奨学金の入金が確認できるページ）": "Bankbook copy (pages showing scholarship deposits)"
+  "通帳の写し（奨学金の入金が確認できるページ）": "Bankbook copy (pages showing scholarship deposits)",
+  "（本学の）成績証明書（発行されない場合は履修登録表を所属の支援室で依頼）": "(This university's)Academic Transcript (if it cannot be issued, request a course registration form from your support office)",
+  "外国人研究生証明書(大学院)": "Certificate of research students(Graduate School)"
 };
