@@ -30,7 +30,7 @@ window.TRANSLATIONS_EN = {
   "正規生": "Regular student",
   "研究生": "Research student",
   "特別聴講学生": "Special auditing student",
-  "この期間内に現在と同じ身分で正規生として在籍していた": "Enrolled as a regular student with the same status during the period",
+  "この期間内に、現在と同じ身分で正規生として在籍していた": "Enrolled as a regular student with the same status during the period",
   "この期間内に、現在とは異なる身分で正規生として在籍していた（学部生→修士、修士→博士等）": "Enrolled as a regular student with a different status during the period (e.g., undergraduate to master's, master's to doctoral)",
   "この期間内に、研究生として在籍していた": "Enrolled as a research student during the period",
   "この期間内に、日本語学校に在籍していた": "Enrolled in a Japanese language school during the period",
