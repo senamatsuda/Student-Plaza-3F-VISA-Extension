@@ -193,6 +193,17 @@ INDEX_HTML = """
 
     let selectedScenarios = new Set();
 
+    function buildScenarioLabelCandidates(label) {
+      const candidates = [label];
+      if (label.startsWith('この期間内に、')) {
+        candidates.push(label.replace('この期間内に、', '前学期、'));
+      }
+      if (label.startsWith('前学期、')) {
+        candidates.push(label.replace('前学期、', 'この期間内に、'));
+      }
+      return candidates;
+    }
+
     function renderOptions() {
       optionsContainer.innerHTML = '';
       const status = statusSelect.value;
@@ -205,9 +216,12 @@ INDEX_HTML = """
 
       const scenarioOptions = scenarioOptionalData[status] || {};
       selectedScenarios.forEach((scenarioLabel) => {
-        if (scenarioOptions[scenarioLabel]) {
-          optionItems.push(...scenarioOptions[scenarioLabel]);
-        }
+        const labelCandidates = buildScenarioLabelCandidates(scenarioLabel);
+        labelCandidates.forEach((candidate) => {
+          if (scenarioOptions[candidate]) {
+            optionItems.push(...scenarioOptions[candidate]);
+          }
+        });
       });
 
       const uniqueItems = new Map();
