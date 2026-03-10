@@ -163,6 +163,10 @@ SCENARIO_OPTIONAL_RULES: Dict[str, Dict[str, List[Scenario]]] = {
                 requirements=["外国人研究生 許可書(コピー)"],
             ),
             Scenario(label="修士に進学する方", requirements=["合格通知書(コピー)"]),
+            Scenario(
+                label="大学院で研究生を継続予定",
+                requirements=["外国人研究生証明書(大学院)"],
+            ),
         ]
     },
     "特別聴講学生": {
@@ -171,6 +175,8 @@ SCENARIO_OPTIONAL_RULES: Dict[str, Dict[str, List[Scenario]]] = {
                 label="日本の大学に１年以上在籍",
                 requirements=["理由書(本学と本人からの両方を１枚に)"],
             ),
+        ],
+        "前学期、本学の特別聴講生として在籍": [
             Scenario(
                 label="本学に１年以上在籍",
                 requirements=["理由書(本学と本人からの両方を１枚に)"],
