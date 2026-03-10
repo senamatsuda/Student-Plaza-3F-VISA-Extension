@@ -157,7 +157,7 @@ STATUS_OPTIONAL_RULES: Dict[str, List[Scenario]] = {
 
 SCENARIO_OPTIONAL_RULES: Dict[str, Dict[str, List[Scenario]]] = {
     "研究生": {
-        "前学期、3+1特別聴講生(C)として在籍（9月で在留期限が切れる場合）": [
+        "この期間内に、3+1特別聴講生(C)として在籍していた（9月で在留期限が切れる場合）": [
             Scenario(
                 label="これから研究生になる方",
                 requirements=["外国人研究生 許可書(コピー)"],
@@ -170,13 +170,13 @@ SCENARIO_OPTIONAL_RULES: Dict[str, Dict[str, List[Scenario]]] = {
         ]
     },
     "特別聴講学生": {
-        "前学期、他大学に在籍": [
+        "この期間内に、他大学に在籍していた": [
             Scenario(
                 label="日本の大学に１年以上在籍",
                 requirements=["理由書(本学と本人からの両方を１枚に)"],
             ),
         ],
-        "前学期、本学の特別聴講生として在籍": [
+        "この期間内に、本学の特別聴講生として在籍していた": [
             Scenario(
                 label="本学に１年以上在籍",
                 requirements=["理由書(本学と本人からの両方を１枚に)"],
