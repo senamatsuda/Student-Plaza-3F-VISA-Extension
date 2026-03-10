@@ -152,6 +152,14 @@ STATUS_OPTIONAL_RULES: Dict[str, List[Scenario]] = {
             "研究継続許可書(コピー)"
             ]),
     ],
+    "特別聴講生": [
+        Scenario(label="(本学以外の)日本の大学に 1 年以上の在籍の場合", requirements=[
+            "理由書（本学からと本人からの両方を 1 枚に）"
+            ]),
+        Scenario(label="本学に 1 年以上の在籍の場合", requirements=[
+            "理由書（本学からと本人からの両方を 1 枚に）"
+            ]),
+    ],
 }
 
 
